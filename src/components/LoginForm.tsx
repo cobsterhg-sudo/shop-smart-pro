@@ -63,7 +63,7 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
           <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Store className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">RetailPro</h1>
+          <h1 className="text-2xl font-bold text-foreground">BentaMate</h1>
           <p className="text-muted-foreground">Sign in to your business account</p>
         </div>
 

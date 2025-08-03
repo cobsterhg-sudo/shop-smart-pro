@@ -34,7 +34,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLogout }: SidebarProps) => {
             <Store className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[hsl(var(--sidebar-text))]">RetailPro</h1>
+            <h1 className="text-xl font-bold text-[hsl(var(--sidebar-text))]">BentaMate</h1>
             <p className="text-sm text-[hsl(var(--sidebar-text))]/60">Business Manager</p>
           </div>
         </div>
