@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ReceiptModal } from "./ReceiptModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -59,6 +60,8 @@ export const PointOfSale = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [amountReceived, setAmountReceived] = useState("");
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState<any>(null);
   const { toast } = useToast();
 
   const filteredProducts = availableProducts.filter(product =>
@@ -145,6 +148,9 @@ export const PointOfSale = () => {
 
     const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
     localStorage.setItem('transactions', JSON.stringify([transaction, ...existingTransactions]));
+
+    setLastTransaction(transaction);
+    setShowReceipt(true);
 
     toast({
       title: "Sale Complete!",
@@ -324,6 +330,13 @@ export const PointOfSale = () => {
           </div>
         </div>
       </Card>
+
+      {/* Receipt Modal */}
+      <ReceiptModal
+        receipt={lastTransaction}
+        isOpen={showReceipt}
+        onClose={() => setShowReceipt(false)}
+      />
     </div>
   );
 };

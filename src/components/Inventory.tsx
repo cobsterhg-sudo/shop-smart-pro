@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ProductForm } from "./ProductForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -14,8 +15,21 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-// Mock product data
-const initialProducts = [
+// Enhanced product interface
+interface Product {
+  id: number;
+  name: string;
+  barcode: string;
+  capital: number;
+  selling: number;
+  stock: number;
+  status: string;
+  category: string;
+  description?: string;
+}
+
+// Mock product data with categories
+const initialProducts: Product[] = [
   {
     id: 1,
     name: "San Miguel Beer 330ml",
@@ -23,7 +37,8 @@ const initialProducts = [
     capital: 35.00,
     selling: 45.00,
     stock: 120,
-    status: "in-stock"
+    status: "in-stock",
+    category: "Beverages"
   },
   {
     id: 2,
@@ -32,7 +47,8 @@ const initialProducts = [
     capital: 18.00,
     selling: 25.00,
     stock: 5,
-    status: "low-stock"
+    status: "low-stock",
+    category: "Food & Snacks"
   },
   {
     id: 3,
@@ -41,7 +57,8 @@ const initialProducts = [
     capital: 35.00,
     selling: 45.00,
     stock: 0,
-    status: "out-of-stock"
+    status: "out-of-stock",
+    category: "Beverages"
   },
   {
     id: 4,
@@ -50,20 +67,38 @@ const initialProducts = [
     capital: 25.00,
     selling: 35.00,
     stock: 15,
-    status: "in-stock"
+    status: "in-stock",
+    category: "Food & Snacks"
   }
 ];
 
 export const Inventory = () => {
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+  const [filterCategory, setFilterCategory] = useState<string>("all");
   const { toast } = useToast();
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.barcode.includes(searchTerm)
-  );
+  // Load products from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('bentamate_products');
+    if (stored) {
+      setProducts(JSON.parse(stored));
+    }
+  }, []);
+
+  // Save products to localStorage whenever products change
+  useEffect(() => {
+    localStorage.setItem('bentamate_products', JSON.stringify(products));
+  }, [products]);
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.barcode.includes(searchTerm);
+    const matchesCategory = filterCategory === "all" || product.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const getStatusBadge = (status: string, stock: number) => {
     if (stock === 0) {
@@ -76,18 +111,33 @@ export const Inventory = () => {
   };
 
   const handleAddProduct = () => {
+    setEditingProduct(undefined);
     setShowAddForm(true);
-    toast({
-      title: "Add Product Feature",
-      description: "Product addition form will be implemented in the next iteration",
-    });
   };
 
-  const handleEditProduct = (productId: number) => {
-    toast({
-      title: "Edit Product Feature",
-      description: `Edit functionality for product ${productId} will be implemented`,
-    });
+  const handleSaveProduct = (productData: any) => {
+    // Determine status based on stock
+    const status = productData.stock === 0 ? "out-of-stock" : 
+                   productData.stock <= 10 ? "low-stock" : "in-stock";
+    
+    const productWithStatus = { ...productData, status };
+    
+    if (editingProduct) {
+      // Update existing product
+      setProducts(products.map(p => 
+        p.id === editingProduct.id ? { ...productWithStatus, id: editingProduct.id } : p
+      ));
+    } else {
+      // Add new product
+      setProducts([...products, { ...productWithStatus, id: Date.now() }]);
+    }
+    setShowAddForm(false);
+    setEditingProduct(undefined);
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setShowAddForm(true);
   };
 
   const handleDeleteProduct = (productId: number) => {
@@ -97,6 +147,9 @@ export const Inventory = () => {
       description: "Product has been removed from inventory",
     });
   };
+
+  // Get unique categories for filter
+  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
 
   return (
     <div className="space-y-6">
@@ -127,7 +180,18 @@ export const Inventory = () => {
               className="pl-10"
             />
           </div>
-          <Button variant="outline">Filter</Button>
+          <Button variant="outline">
+            <select 
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="bg-transparent border-none outline-none"
+            >
+              <option value="all">All Categories</option>
+              {categories.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </Button>
         </div>
       </Card>
 
@@ -191,7 +255,12 @@ export const Inventory = () => {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium text-foreground">{product.name}</h4>
-                      <p className="text-sm text-muted-foreground">Barcode: {product.barcode}</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>Barcode: {product.barcode}</span>
+                        {product.category && (
+                          <span className="px-2 py-1 bg-accent rounded text-xs">{product.category}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -216,7 +285,8 @@ export const Inventory = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEditProduct(product.id)}
+                    onClick={() => handleEditProduct(product)}
+                    className="hover-scale"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -224,7 +294,7 @@ export const Inventory = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDeleteProduct(product.id)}
-                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground hover-scale"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -234,6 +304,17 @@ export const Inventory = () => {
           </div>
         </div>
       </Card>
+
+      {/* Product Form Modal */}
+      <ProductForm
+        product={editingProduct}
+        isOpen={showAddForm}
+        onClose={() => {
+          setShowAddForm(false);
+          setEditingProduct(undefined);
+        }}
+        onSave={handleSaveProduct}
+      />
     </div>
   );
 };
