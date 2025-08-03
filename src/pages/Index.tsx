@@ -103,13 +103,13 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-gradient-to-br from-background via-background to-accent/5">
       <Sidebar 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
         onLogout={handleLogout}
       />
-      <main className="flex-1 p-8 overflow-auto bg-gradient-to-br from-background via-background to-accent/5">
+      <main className="flex-1 p-8 overflow-auto">
         <div className="max-w-7xl mx-auto">
           {renderContent()}
         </div>
