@@ -3,7 +3,11 @@ import { Card } from "@/components/ui/card";
 import { TrendingUp, Package, DollarSign, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Dashboard = () => {
+interface DashboardProps {
+  onTabChange: (tab: string) => void;
+}
+
+export const Dashboard = ({ onTabChange }: DashboardProps) => {
   const [stats, setStats] = useState({
     todaysSales: 0,
     productsInStock: 0,
@@ -161,19 +165,31 @@ export const Dashboard = () => {
         <Card className="p-6 shadow-soft">
           <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-3">
-            <button className="p-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-center">
+            <button 
+              onClick={() => onTabChange("inventory")}
+              className="p-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-center"
+            >
               <Package className="w-6 h-6 mx-auto mb-2" />
               <span className="text-sm font-medium">Add Product</span>
             </button>
-            <button className="p-4 rounded-lg bg-success text-success-foreground hover:bg-success/90 transition-colors text-center">
+            <button 
+              onClick={() => onTabChange("pos")}
+              className="p-4 rounded-lg bg-success text-success-foreground hover:bg-success/90 transition-colors text-center"
+            >
               <DollarSign className="w-6 h-6 mx-auto mb-2" />
               <span className="text-sm font-medium">New Sale</span>
             </button>
-            <button className="p-4 rounded-lg bg-warning text-warning-foreground hover:bg-warning/90 transition-colors text-center">
+            <button 
+              onClick={() => onTabChange("reports")}
+              className="p-4 rounded-lg bg-warning text-warning-foreground hover:bg-warning/90 transition-colors text-center"
+            >
               <TrendingUp className="w-6 h-6 mx-auto mb-2" />
               <span className="text-sm font-medium">View Reports</span>
             </button>
-            <button className="p-4 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 transition-colors text-center">
+            <button 
+              onClick={() => onTabChange("settings")}
+              className="p-4 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 transition-colors text-center"
+            >
               <Users className="w-6 h-6 mx-auto mb-2" />
               <span className="text-sm font-medium">Manage Users</span>
             </button>

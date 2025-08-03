@@ -47,7 +47,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard onTabChange={setActiveTab} />;
       case "inventory":
         return <Inventory />;
       case "pos":
@@ -57,7 +57,7 @@ const Index = () => {
       case "settings":
         return <Settings onLogout={handleLogout} />;
       default:
-        return <Dashboard />;
+        return <Dashboard onTabChange={setActiveTab} />;
     }
   };
 
