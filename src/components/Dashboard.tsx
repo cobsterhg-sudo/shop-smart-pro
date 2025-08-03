@@ -1,12 +1,69 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, Package, DollarSign, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Dashboard = () => {
-  // Mock data - in real app this would come from your store/API
-  const stats = [
+  const [stats, setStats] = useState({
+    todaysSales: 0,
+    productsInStock: 0,
+    lowStockItems: 0,
+    transactionsToday: 0
+  });
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch today's transactions
+      const today = new Date().toISOString().split('T')[0];
+      const { data: transactions } = await supabase
+        .from('transactions')
+        .select('*')
+        .gte('created_at', today);
+
+      // Calculate today's sales
+      const todaysSales = transactions?.reduce((sum, t) => sum + Number(t.total), 0) || 0;
+      const transactionsToday = transactions?.length || 0;
+
+      // Fetch products for stock stats
+      const { data: products } = await supabase
+        .from('products')
+        .select('stock, status');
+
+      const productsInStock = products?.filter(p => p.stock > 10).length || 0;
+      const lowStockItems = products?.filter(p => p.stock > 0 && p.stock <= 10).length || 0;
+
+      // Get recent transactions with product details
+      const { data: recentTransactionsData } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      setStats({
+        todaysSales,
+        productsInStock,
+        lowStockItems,
+        transactionsToday
+      });
+
+      setRecentTransactions(recentTransactionsData || []);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const displayStats = [
     {
       title: "Today's Sales",
-      value: "₱2,450.00",
+      value: `₱${stats.todaysSales.toFixed(2)}`,
       change: "+12%",
       trend: "up",
       icon: DollarSign,
@@ -14,7 +71,7 @@ export const Dashboard = () => {
     },
     {
       title: "Products in Stock",
-      value: "245",
+      value: stats.productsInStock.toString(),
       change: "+5",
       trend: "up", 
       icon: Package,
@@ -22,7 +79,7 @@ export const Dashboard = () => {
     },
     {
       title: "Low Stock Items",
-      value: "8",
+      value: stats.lowStockItems.toString(),
       change: "+2",
       trend: "down",
       icon: TrendingUp,
@@ -30,7 +87,7 @@ export const Dashboard = () => {
     },
     {
       title: "Transactions Today",
-      value: "32",
+      value: stats.transactionsToday.toString(),
       change: "+8",
       trend: "up",
       icon: Users,
@@ -38,12 +95,6 @@ export const Dashboard = () => {
     }
   ];
 
-  const recentTransactions = [
-    { id: "#001", product: "San Miguel Beer", amount: "₱140.00", time: "2:45 PM" },
-    { id: "#002", product: "Lucky Me Instant Noodles", amount: "₱25.00", time: "2:30 PM" },
-    { id: "#003", product: "Coca Cola 1.5L", amount: "₱45.00", time: "2:15 PM" },
-    { id: "#004", product: "Bread Loaf", amount: "₱35.00", time: "1:55 PM" },
-  ];
 
   return (
     <div className="space-y-6">
@@ -55,7 +106,7 @@ export const Dashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+        {displayStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index} className="p-6 bg-gradient-card shadow-soft hover:shadow-medium transition-all duration-300">
@@ -86,15 +137,23 @@ export const Dashboard = () => {
             <span className="text-sm text-primary cursor-pointer hover:underline">View All</span>
           </div>
           <div className="space-y-3">
-            {recentTransactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <div>
-                  <p className="font-medium text-foreground">{transaction.product}</p>
-                  <p className="text-sm text-muted-foreground">{transaction.id} • {transaction.time}</p>
+            {loading ? (
+              <div className="text-center py-4 text-muted-foreground">Loading...</div>
+            ) : recentTransactions.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">No transactions yet</div>
+            ) : (
+              recentTransactions.map((transaction) => (
+                <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div>
+                    <p className="font-medium text-foreground">Transaction #{transaction.id.slice(-6)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(transaction.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-foreground">₱{Number(transaction.total).toFixed(2)}</p>
                 </div>
-                <p className="font-semibold text-foreground">{transaction.amount}</p>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 

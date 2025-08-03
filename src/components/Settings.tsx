@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -17,6 +17,7 @@ import {
   Smartphone
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SettingsProps {
   onLogout: () => void;
@@ -26,7 +27,29 @@ export const Settings = ({ onLogout }: SettingsProps) => {
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        setUserProfile({ user, profile });
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const handleThemeChange = (enabled: boolean) => {
     setDarkMode(enabled);
@@ -54,10 +77,10 @@ export const Settings = ({ onLogout }: SettingsProps) => {
   };
 
   const clearLocalData = () => {
-    localStorage.removeItem('transactions');
+    // Note: This is now a placeholder since data is stored in Supabase
     toast({
-      title: "Data Cleared",
-      description: "All local data has been cleared",
+      title: "Data Management",
+      description: "Data is now stored securely in Supabase cloud database",
     });
   };
 
@@ -79,10 +102,12 @@ export const Settings = ({ onLogout }: SettingsProps) => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-foreground">Username</p>
-              <p className="text-sm text-muted-foreground">admin</p>
+              <p className="font-medium text-foreground">Email</p>
+              <p className="text-sm text-muted-foreground">
+                {userProfile?.user?.email || "Loading..."}
+              </p>
             </div>
-            <Badge variant="secondary">Administrator</Badge>
+            <Badge variant="secondary">User</Badge>
           </div>
           
           <Separator />
@@ -90,9 +115,9 @@ export const Settings = ({ onLogout }: SettingsProps) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-foreground">Account Type</p>
-              <p className="text-sm text-muted-foreground">Local Account</p>
+              <p className="text-sm text-muted-foreground">Supabase Account</p>
             </div>
-            <Badge variant="outline">Demo Mode</Badge>
+            <Badge variant="outline">Cloud Storage</Badge>
           </div>
           
           <Separator />
@@ -197,19 +222,19 @@ export const Settings = ({ onLogout }: SettingsProps) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-foreground">Storage Location</p>
-              <p className="text-sm text-muted-foreground">Local Browser Storage</p>
+              <p className="text-sm text-muted-foreground">Supabase Cloud Database</p>
             </div>
-            <Badge variant="outline">Local Only</Badge>
+            <Badge variant="outline">Cloud Secure</Badge>
           </div>
           
           <Separator />
           
           <Button 
-            variant="destructive" 
+            variant="outline" 
             onClick={clearLocalData}
             size="sm"
           >
-            Clear Local Data
+            View Data Info
           </Button>
         </div>
       </Card>

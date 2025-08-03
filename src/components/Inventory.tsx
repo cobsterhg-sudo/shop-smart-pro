@@ -14,10 +14,11 @@ import {
   CheckCircle
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Enhanced product interface
 interface Product {
-  id: number;
+  id: string;
   name: string;
   barcode: string;
   capital: number;
@@ -28,70 +29,40 @@ interface Product {
   description?: string;
 }
 
-// Mock product data with categories
-const initialProducts: Product[] = [
-  {
-    id: 1,
-    name: "San Miguel Beer 330ml",
-    barcode: "4806502121002",
-    capital: 35.00,
-    selling: 45.00,
-    stock: 120,
-    status: "in-stock",
-    category: "Beverages"
-  },
-  {
-    id: 2,
-    name: "Lucky Me Instant Noodles",
-    barcode: "4800194122306",
-    capital: 18.00,
-    selling: 25.00,
-    stock: 5,
-    status: "low-stock",
-    category: "Food & Snacks"
-  },
-  {
-    id: 3,
-    name: "Coca Cola 1.5L",
-    barcode: "4902777317151",
-    capital: 35.00,
-    selling: 45.00,
-    stock: 0,
-    status: "out-of-stock",
-    category: "Beverages"
-  },
-  {
-    id: 4,
-    name: "Bread Loaf",
-    barcode: "2844711100403",
-    capital: 25.00,
-    selling: 35.00,
-    stock: 15,
-    status: "in-stock",
-    category: "Food & Snacks"
-  }
-];
-
 export const Inventory = () => {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Load products from localStorage on mount
+  // Load products from Supabase on mount
   useEffect(() => {
-    const stored = localStorage.getItem('bentamate_products');
-    if (stored) {
-      setProducts(JSON.parse(stored));
-    }
+    fetchProducts();
   }, []);
 
-  // Save products to localStorage whenever products change
-  useEffect(() => {
-    localStorage.setItem('bentamate_products', JSON.stringify(products));
-  }, [products]);
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,24 +86,65 @@ export const Inventory = () => {
     setShowAddForm(true);
   };
 
-  const handleSaveProduct = (productData: any) => {
-    // Determine status based on stock
-    const status = productData.stock === 0 ? "out-of-stock" : 
-                   productData.stock <= 10 ? "low-stock" : "in-stock";
-    
-    const productWithStatus = { ...productData, status };
-    
-    if (editingProduct) {
-      // Update existing product
-      setProducts(products.map(p => 
-        p.id === editingProduct.id ? { ...productWithStatus, id: editingProduct.id } : p
-      ));
-    } else {
-      // Add new product
-      setProducts([...products, { ...productWithStatus, id: Date.now() }]);
+  const handleSaveProduct = async (productData: any) => {
+    try {
+      // Determine status based on stock
+      const status = productData.stock === 0 ? "out-of-stock" : 
+                     productData.stock <= 10 ? "low-stock" : "in-stock";
+      
+      const productWithStatus = { 
+        ...productData, 
+        status,
+        capital: Number(productData.capital),
+        selling: Number(productData.selling),
+        stock: Number(productData.stock)
+      };
+      
+      if (editingProduct) {
+        // Update existing product
+        const { error } = await supabase
+          .from('products')
+          .update(productWithStatus)
+          .eq('id', editingProduct.id);
+
+        if (error) throw error;
+
+        setProducts(products.map(p => 
+          p.id === editingProduct.id ? { ...productWithStatus, id: editingProduct.id } : p
+        ));
+        
+        toast({
+          title: "Product Updated",
+          description: "Product has been updated successfully",
+        });
+      } else {
+        // Add new product
+        const { data, error } = await supabase
+          .from('products')
+          .insert(productWithStatus)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setProducts([data, ...products]);
+        
+        toast({
+          title: "Product Added",
+          description: "Product has been added successfully",
+        });
+      }
+      
+      setShowAddForm(false);
+      setEditingProduct(undefined);
+    } catch (error) {
+      console.error('Error saving product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save product",
+        variant: "destructive",
+      });
     }
-    setShowAddForm(false);
-    setEditingProduct(undefined);
   };
 
   const handleEditProduct = (product: Product) => {
@@ -140,12 +152,28 @@ export const Inventory = () => {
     setShowAddForm(true);
   };
 
-  const handleDeleteProduct = (productId: number) => {
-    setProducts(products.filter(p => p.id !== productId));
-    toast({
-      title: "Product Deleted",
-      description: "Product has been removed from inventory",
-    });
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      setProducts(products.filter(p => p.id !== productId));
+      toast({
+        title: "Product Deleted",
+        description: "Product has been removed from inventory",
+      });
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
   };
 
   // Get unique categories for filter
@@ -246,7 +274,14 @@ export const Inventory = () => {
         <div className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Product Catalog</h3>
           <div className="space-y-3">
-            {filteredProducts.map((product) => (
+            {loading ? (
+              <div className="text-center py-8 text-muted-foreground">Loading products...</div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm || filterCategory !== "all" ? "No products match your filters" : "No products added yet"}
+              </div>
+            ) : (
+              filteredProducts.map((product) => (
               <div key={product.id} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-medium transition-all duration-200">
                 <div className="flex-1">
                   <div className="flex items-center gap-4">
@@ -300,7 +335,8 @@ export const Inventory = () => {
                   </Button>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </Card>

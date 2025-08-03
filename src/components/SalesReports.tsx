@@ -22,6 +22,7 @@ import {
   BarChart,
   Bar
 } from 'recharts';
+import { supabase } from "@/integrations/supabase/client";
 
 interface Transaction {
   id: number;
@@ -35,14 +36,38 @@ interface Transaction {
 export const SalesReports = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load transactions from localStorage
-    const stored = localStorage.getItem('transactions');
-    if (stored) {
-      setTransactions(JSON.parse(stored));
-    }
+    fetchTransactions();
   }, []);
+
+  const fetchTransactions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Transform data to match expected format
+      const transformedData = data?.map(transaction => ({
+        id: parseInt(transaction.id.slice(-6)),
+        items: transaction.items as any[],
+        total: Number(transaction.total),
+        amountReceived: Number(transaction.amount_received),
+        change: Number(transaction.change_amount),
+        timestamp: transaction.created_at
+      })) || [];
+
+      setTransactions(transformedData);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate metrics
   const today = new Date();
@@ -130,7 +155,9 @@ export const SalesReports = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Today's Sales</p>
-              <p className="text-2xl font-bold text-foreground">₱{totalSales.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {loading ? "Loading..." : `₱${totalSales.toFixed(2)}`}
+              </p>
               <p className="text-sm text-success flex items-center gap-1 mt-1">
                 <TrendingUp className="w-4 h-4" />
                 +12% from yesterday
@@ -146,7 +173,9 @@ export const SalesReports = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Transactions</p>
-              <p className="text-2xl font-bold text-foreground">{totalTransactions}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {loading ? "Loading..." : totalTransactions}
+              </p>
               <p className="text-sm text-success flex items-center gap-1 mt-1">
                 <TrendingUp className="w-4 h-4" />
                 +8 from yesterday
@@ -162,7 +191,9 @@ export const SalesReports = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Average Sale</p>
-              <p className="text-2xl font-bold text-foreground">₱{averageTransaction.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {loading ? "Loading..." : `₱${averageTransaction.toFixed(2)}`}
+              </p>
               <p className="text-sm text-warning flex items-center gap-1 mt-1">
                 <TrendingDown className="w-4 h-4" />
                 -2% from yesterday

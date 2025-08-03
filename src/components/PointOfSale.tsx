@@ -16,44 +16,22 @@ import {
   Scan
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock product data - in real app this would come from your inventory
-const availableProducts = [
-  {
-    id: 1,
-    name: "San Miguel Beer 330ml",
-    barcode: "4806502121002",
-    price: 45.00,
-    stock: 120
-  },
-  {
-    id: 2,
-    name: "Lucky Me Instant Noodles",
-    barcode: "4800194122306", 
-    price: 25.00,
-    stock: 5
-  },
-  {
-    id: 4,
-    name: "Bread Loaf",
-    barcode: "2844711100403",
-    price: 35.00,
-    stock: 15
-  },
-  {
-    id: 5,
-    name: "Rice 5kg",
-    barcode: "1234567890123",
-    price: 250.00,
-    stock: 30
-  }
-];
 
 interface CartItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity: number;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  barcode: string;
+  selling: number;
+  stock: number;
 }
 
 export const PointOfSale = () => {
@@ -62,12 +40,40 @@ export const PointOfSale = () => {
   const [amountReceived, setAmountReceived] = useState("");
   const [showReceipt, setShowReceipt] = useState(false);
   const [lastTransaction, setLastTransaction] = useState<any>(null);
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, barcode, selling, stock')
+        .gt('stock', 0)
+        .eq('status', 'in-stock');
+
+      if (error) throw error;
+      setAvailableProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredProducts = availableProducts.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.barcode.includes(searchTerm) ||
-    product.id.toString().includes(searchTerm)
+    product.id.includes(searchTerm)
   );
 
   const addToCart = (product: any) => {
@@ -83,7 +89,7 @@ export const PointOfSale = () => {
       setCart([...cart, {
         id: product.id,
         name: product.name,
-        price: product.price,
+        price: product.selling,
         quantity: 1
       }]);
     }
@@ -94,7 +100,7 @@ export const PointOfSale = () => {
     });
   };
 
-  const updateQuantity = (id: number, change: number) => {
+  const updateQuantity = (id: string, change: number) => {
     setCart(cart.map(item => {
       if (item.id === id) {
         const newQuantity = Math.max(0, item.quantity + change);
@@ -104,7 +110,7 @@ export const PointOfSale = () => {
     }).filter(Boolean) as CartItem[]);
   };
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string) => {
     setCart(cart.filter(item => item.id !== id));
   };
 
@@ -117,7 +123,7 @@ export const PointOfSale = () => {
   const total = subtotal; // Add tax calculations here if needed
   const change = amountReceived ? Math.max(0, parseFloat(amountReceived) - total) : 0;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) {
       toast({
         title: "Empty Cart",
@@ -136,28 +142,68 @@ export const PointOfSale = () => {
       return;
     }
 
-    // Save transaction to localStorage
-    const transaction = {
-      id: Date.now(),
-      items: cart,
-      total,
-      amountReceived: parseFloat(amountReceived),
-      change,
-      timestamp: new Date().toISOString()
-    };
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in to complete the sale",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-    localStorage.setItem('transactions', JSON.stringify([transaction, ...existingTransactions]));
+      // Save transaction to Supabase
+      const transactionData = {
+        items: cart as any, // Cast to any to satisfy Json type
+        total,
+        amount_received: parseFloat(amountReceived),
+        change_amount: change,
+        user_id: user.id
+      };
 
-    setLastTransaction(transaction);
-    setShowReceipt(true);
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert(transactionData)
+        .select()
+        .single();
 
-    toast({
-      title: "Sale Complete!",
-      description: `Transaction completed. Change: ₱${change.toFixed(2)}`,
-    });
+      if (error) throw error;
 
-    clearCart();
+      // Update product stock
+      for (const item of cart) {
+        const product = availableProducts.find(p => p.id === item.id);
+        if (product) {
+          await supabase
+            .from('products')
+            .update({ stock: product.stock - item.quantity })
+            .eq('id', item.id);
+        }
+      }
+
+      setLastTransaction({
+        ...data,
+        amountReceived: parseFloat(amountReceived),
+        timestamp: data.created_at
+      });
+      setShowReceipt(true);
+
+      toast({
+        title: "Sale Complete!",
+        description: `Transaction completed. Change: ₱${change.toFixed(2)}`,
+      });
+
+      clearCart();
+      fetchProducts(); // Refresh products to update stock
+    } catch (error) {
+      console.error('Error completing sale:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete sale",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -191,7 +237,14 @@ export const PointOfSale = () => {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProducts.map((product) => (
+          {loading ? (
+            <div className="col-span-full text-center py-8 text-muted-foreground">Loading products...</div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="col-span-full text-center py-8 text-muted-foreground">
+              {searchTerm ? "No products match your search" : "No products available"}
+            </div>
+          ) : (
+            filteredProducts.map((product) => (
             <Card 
               key={product.id} 
               className="p-4 shadow-soft hover:shadow-medium transition-all cursor-pointer"
@@ -206,14 +259,15 @@ export const PointOfSale = () => {
                   <p className="text-sm text-muted-foreground">Stock: {product.stock}</p>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-foreground">₱{product.price.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-foreground">₱{product.selling.toFixed(2)}</span>
                   <Badge variant="outline" className="text-xs">
-                    #{product.id}
+                    #{product.id.slice(-6)}
                   </Badge>
                 </div>
               </div>
             </Card>
-          ))}
+            ))
+          )}
         </div>
       </div>
 

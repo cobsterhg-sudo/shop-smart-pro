@@ -23,7 +23,7 @@ import { Camera, Scan, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Product {
-  id?: number;
+  id?: string;
   name: string;
   barcode: string;
   capital: number;
@@ -94,7 +94,7 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
 
     const productToSave = {
       ...formData,
-      id: product?.id || Date.now(),
+      id: product?.id || Date.now().toString(),
     };
 
     onSave(productToSave);
