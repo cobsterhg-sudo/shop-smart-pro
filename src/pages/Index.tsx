@@ -3,6 +3,9 @@ import { LoginForm } from "@/components/LoginForm";
 import { Sidebar } from "@/components/Sidebar";
 import { Dashboard } from "@/components/Dashboard";
 import { Inventory } from "@/components/Inventory";
+import { PointOfSale } from "@/components/PointOfSale";
+import { SalesReports } from "@/components/SalesReports";
+import { Settings } from "@/components/Settings";
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -27,26 +30,11 @@ const Index = () => {
       case "inventory":
         return <Inventory />;
       case "pos":
-        return (
-          <div className="p-8 text-center">
-            <h1 className="text-2xl font-bold mb-4">Point of Sale</h1>
-            <p className="text-muted-foreground">POS system coming in next iteration</p>
-          </div>
-        );
+        return <PointOfSale />;
       case "reports":
-        return (
-          <div className="p-8 text-center">
-            <h1 className="text-2xl font-bold mb-4">Sales Reports</h1>
-            <p className="text-muted-foreground">Reporting dashboard coming in next iteration</p>
-          </div>
-        );
+        return <SalesReports />;
       case "settings":
-        return (
-          <div className="p-8 text-center">
-            <h1 className="text-2xl font-bold mb-4">Settings</h1>
-            <p className="text-muted-foreground">Settings panel coming in next iteration</p>
-          </div>
-        );
+        return <Settings onLogout={handleLogout} />;
       default:
         return <Dashboard />;
     }
