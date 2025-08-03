@@ -34,6 +34,32 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Password strength validation
+    if (password.length < 8) {
+      toast({
+        title: "Weak Password",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Check for basic password strength
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      toast({
+        title: "Weak Password",
+        description: "Password must contain uppercase, lowercase, and numbers",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -211,11 +237,12 @@ const Auth = () => {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="Create a secure password"
+                    placeholder="8+ chars with uppercase, lowercase, numbers"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-12 border-border/50 focus:border-primary focus:ring-primary/20"
                     required
+                    minLength={8}
                   />
                 </div>
                 <Button 
