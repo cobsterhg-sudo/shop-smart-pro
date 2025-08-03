@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Dashboard } from "@/components/Dashboard";
 import { Inventory } from "@/components/Inventory";
 import { PointOfSale } from "@/components/PointOfSale";
+import { CostAnalysis } from "@/components/CostAnalysis";
 import { SalesReports } from "@/components/SalesReports";
 import { Settings } from "@/components/Settings";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,8 @@ const Index = () => {
         return <Inventory />;
       case "pos":
         return <PointOfSale />;
+      case "cost-analysis":
+        return <CostAnalysis />;
       case "reports":
         return <SalesReports />;
       case "settings":

@@ -7,7 +7,8 @@ import {
   BarChart3, 
   Settings,
   LogOut,
-  Store
+  Store,
+  TrendingUp
 } from "lucide-react";
 
 interface SidebarProps {
@@ -20,6 +21,7 @@ const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
   { id: 'inventory', name: 'Inventory', icon: Package },
   { id: 'pos', name: 'Point of Sale', icon: ShoppingCart },
+  { id: 'cost-analysis', name: 'Cost Analysis', icon: TrendingUp },
   { id: 'reports', name: 'Reports', icon: BarChart3 },
   { id: 'settings', name: 'Settings', icon: Settings },
 ];
