@@ -74,21 +74,26 @@ const Index = () => {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-secondary/20 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-primary rounded-full">
-                <ShoppingCart className="h-8 w-8 text-primary-foreground" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center bg-gradient-card border-border/50 shadow-large">
+          <CardHeader className="pb-6">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-gradient-primary rounded-2xl shadow-glow">
+                <ShoppingCart className="h-10 w-10 text-primary-foreground" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Welcome to BentaMate</CardTitle>
-            <CardDescription>
-              Your complete business management solution
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text">
+              Welcome to BentaMate
+            </CardTitle>
+            <CardDescription className="text-base text-muted-foreground mt-2">
+              Your modern business management solution
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/auth")} className="w-full">
+            <Button 
+              onClick={() => navigate("/auth")} 
+              className="w-full h-12 bg-gradient-primary text-primary-foreground font-semibold shadow-glow hover:shadow-glow hover:scale-[1.02] transition-all duration-200"
+            >
               Get Started
             </Button>
           </CardContent>
@@ -104,8 +109,10 @@ const Index = () => {
         onTabChange={setActiveTab}
         onLogout={handleLogout}
       />
-      <main className="flex-1 p-8 overflow-auto">
-        {renderContent()}
+      <main className="flex-1 p-8 overflow-auto bg-gradient-to-br from-background via-background to-accent/5">
+        <div className="max-w-7xl mx-auto">
+          {renderContent()}
+        </div>
       </main>
     </div>
   );
