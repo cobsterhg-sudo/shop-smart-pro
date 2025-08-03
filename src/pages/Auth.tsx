@@ -89,102 +89,140 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-secondary/20 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
-              <ShoppingCart className="h-8 w-8 text-primary-foreground" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-gradient-card border-border/50 shadow-large animate-scale-in">
+        <CardHeader className="text-center pb-6">
+          <div className="flex justify-center mb-6">
+            <div className="p-4 bg-gradient-primary rounded-2xl shadow-glow">
+              <ShoppingCart className="h-10 w-10 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">BentaMate</CardTitle>
-          <CardDescription>
-            Your complete business management solution
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text">
+            BentaMate
+          </CardTitle>
+          <CardDescription className="text-base text-muted-foreground mt-2">
+            Your modern business management solution
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-xl">
+              <TabsTrigger 
+                value="signin" 
+                className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-soft transition-all duration-200"
+              >
+                Sign In
+              </TabsTrigger>
+              <TabsTrigger 
+                value="signup" 
+                className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-soft transition-all duration-200"
+              >
+                Sign Up
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
+            <TabsContent value="signin" className="mt-6">
+              <form onSubmit={handleSignIn} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="signin-email" className="text-sm font-semibold">
+                    Email Address
+                  </Label>
                   <Input
                     id="signin-email"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 border-border/50 focus:border-primary focus:ring-primary/20"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password" className="text-sm font-semibold">
+                    Password
+                  </Label>
                   <Input
                     id="signin-password"
                     type="password"
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 border-border/50 focus:border-primary focus:ring-primary/20"
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-primary text-primary-foreground font-semibold shadow-glow hover:shadow-glow hover:scale-[1.02] transition-all duration-200" 
+                  disabled={loading}
+                >
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
             </TabsContent>
             
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
+            <TabsContent value="signup" className="mt-6">
+              <form onSubmit={handleSignUp} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-fullname">Full Name</Label>
+                  <Label htmlFor="signup-fullname" className="text-sm font-semibold">
+                    Full Name
+                  </Label>
                   <Input
                     id="signup-fullname"
                     type="text"
                     placeholder="Enter your full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
+                    className="h-12 border-border/50 focus:border-primary focus:ring-primary/20"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-business">Business Name</Label>
+                  <Label htmlFor="signup-business" className="text-sm font-semibold">
+                    Business Name <span className="text-muted-foreground">(Optional)</span>
+                  </Label>
                   <Input
                     id="signup-business"
                     type="text"
                     placeholder="Enter your business name"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
+                    className="h-12 border-border/50 focus:border-primary focus:ring-primary/20"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-sm font-semibold">
+                    Email Address
+                  </Label>
                   <Input
                     id="signup-email"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 border-border/50 focus:border-primary focus:ring-primary/20"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password" className="text-sm font-semibold">
+                    Password
+                  </Label>
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="Create a secure password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 border-border/50 focus:border-primary focus:ring-primary/20"
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-primary text-primary-foreground font-semibold shadow-glow hover:shadow-glow hover:scale-[1.02] transition-all duration-200" 
+                  disabled={loading}
+                >
                   {loading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>
