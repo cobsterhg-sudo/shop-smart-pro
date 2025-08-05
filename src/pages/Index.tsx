@@ -106,17 +106,39 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-background via-background to-accent/5">
-      <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        onLogout={handleLogout}
-      />
-      <main className="flex-1 p-8 overflow-auto">
-        <div className="max-w-7xl mx-auto">
-          {renderContent()}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+      {/* Mobile Layout */}
+      <div className="flex flex-col lg:hidden">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 p-4">
+          <h1 className="text-lg font-bold text-foreground">BentaMate</h1>
         </div>
-      </main>
+        <main className="pt-16 p-4">
+          <div className="max-w-full mx-auto">
+            {renderContent()}
+          </div>
+        </main>
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/50">
+          <Sidebar 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+            onLogout={handleLogout}
+          />
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:flex min-h-screen">
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          onLogout={handleLogout}
+        />
+        <main className="flex-1 p-8 overflow-auto">
+          <div className="max-w-7xl mx-auto">
+            {renderContent()}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

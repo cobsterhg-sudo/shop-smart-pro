@@ -1,0 +1,16 @@
+{
+  "name": "BentaMate",
+  "short_name": "BentaMate",
+  "description": "Business Management Tool",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

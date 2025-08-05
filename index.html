@@ -6,6 +6,14 @@
     <title>BentaMate - Business Manager</title>
     <meta name="description" content="Comprehensive retail management application for small businesses" />
     <meta name="author" content="BentaMate" />
+    <link rel="manifest" href="/manifest.json">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js');
+        });
+      }
+    </script>
 
     <meta property="og:title" content="BentaMate - Business Manager" />
     <meta property="og:description" content="Comprehensive retail management application for small businesses" />
