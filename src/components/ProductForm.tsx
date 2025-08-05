@@ -66,6 +66,7 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted!', formData);
     setIsLoading(true);
 
     // Validation
