@@ -90,6 +90,8 @@ export const Inventory = () => {
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user);
+      
       if (!user) {
         toast({
           title: "Authentication Error",
@@ -98,6 +100,15 @@ export const Inventory = () => {
         });
         return;
       }
+
+      // Check user role
+      const { data: userRole, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      console.log('User role:', userRole, 'Role error:', roleError);
 
       // Determine status based on stock
       const status = productData.stock === 0 ? "out-of-stock" : 
@@ -111,6 +122,8 @@ export const Inventory = () => {
         selling: Number(productData.selling),
         stock: Number(productData.stock)
       };
+      
+      console.log('Product data to save:', productWithStatus);
       
       if (editingProduct) {
         // Update existing product
