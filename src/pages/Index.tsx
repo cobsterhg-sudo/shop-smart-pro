@@ -112,12 +112,12 @@ const Index = () => {
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 p-4">
           <h1 className="text-lg font-bold text-foreground">BentaMate</h1>
         </div>
-        <main className="pt-16 p-4">
+        <main className="pt-16 pb-20 p-4">
           <div className="max-w-full mx-auto">
             {renderContent()}
           </div>
         </main>
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/50">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/50 h-20">
           <Sidebar 
             activeTab={activeTab} 
             onTabChange={setActiveTab}
