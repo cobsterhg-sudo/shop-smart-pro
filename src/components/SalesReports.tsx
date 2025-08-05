@@ -9,7 +9,11 @@ import {
   ShoppingCart, 
   Calendar,
   Download,
-  Filter
+  Filter,
+  Target,
+  BarChart3,
+  Clock,
+  Users
 } from "lucide-react";
 import { 
   LineChart, 
@@ -20,122 +24,324 @@ import {
   Tooltip, 
   ResponsiveContainer,
   BarChart,
-  Bar
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area
 } from 'recharts';
 import { supabase } from "@/integrations/supabase/client";
 
-interface Transaction {
-  id: number;
+interface RawTransaction {
+  id: string;
+  items: any[];
+  total: number;
+  amount_received: number;
+  change_amount: number;
+  created_at: string;
+  user_id: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  capital: number;
+  selling: number;
+  category: string;
+  stock: number;
+}
+
+interface ProcessedTransaction {
+  id: string;
   items: any[];
   total: number;
   amountReceived: number;
   change: number;
   timestamp: string;
+  profit: number;
+  hour: number;
+}
+
+interface Analytics {
+  totalRevenue: number;
+  totalProfit: number;
+  totalCost: number;
+  totalTransactions: number;
+  averageTransactionValue: number;
+  profitMargin: number;
+  topSellingProducts: Array<{
+    name: string;
+    quantity: number;
+    revenue: number;
+    profit: number;
+  }>;
+  categoryPerformance: Array<{
+    category: string;
+    revenue: number;
+    profit: number;
+    transactions: number;
+  }>;
+  hourlyPerformance: Array<{
+    hour: number;
+    transactions: number;
+    revenue: number;
+  }>;
+  dailyTrends: Array<{
+    date: string;
+    revenue: number;
+    profit: number;
+    transactions: number;
+  }>;
 }
 
 export const SalesReports = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
   useEffect(() => {
-    fetchTransactions();
+    fetchData();
   }, []);
 
-  const fetchTransactions = async () => {
+  useEffect(() => {
+    if (transactions.length > 0 && products.length > 0) {
+      calculateAnalytics();
+    }
+  }, [transactions, products, timeframe]);
+
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch transactions and products in parallel
+      const [transactionsResult, productsResult] = await Promise.all([
+        supabase
+          .from('transactions')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('products')
+          .select('*')
+      ]);
 
-      if (error) throw error;
+      if (transactionsResult.error) throw transactionsResult.error;
+      if (productsResult.error) throw productsResult.error;
+
+      setProducts(productsResult.data || []);
       
-      // Transform data to match expected format
-      const transformedData = data?.map(transaction => ({
-        id: parseInt(transaction.id.slice(-6)),
-        items: transaction.items as any[],
-        total: Number(transaction.total),
-        amountReceived: Number(transaction.amount_received),
-        change: Number(transaction.change_amount),
-        timestamp: transaction.created_at
-      })) || [];
+      // Process transactions with profit calculations
+      const processedTransactions = (transactionsResult.data || []).map((transaction: RawTransaction) => {
+        const transactionDate = new Date(transaction.created_at);
+        
+        // Calculate actual profit for this transaction
+        let transactionProfit = 0;
+        if (transaction.items && Array.isArray(transaction.items)) {
+          transactionProfit = transaction.items.reduce((profit, item) => {
+            const product = productsResult.data?.find(p => p.id === item.id);
+            if (product) {
+              const itemProfit = (product.selling - product.capital) * item.quantity;
+              return profit + itemProfit;
+            }
+            return profit;
+          }, 0);
+        }
 
-      setTransactions(transformedData);
+        return {
+          id: transaction.id,
+          items: transaction.items || [],
+          total: Number(transaction.total),
+          amountReceived: Number(transaction.amount_received),
+          change: Number(transaction.change_amount),
+          timestamp: transaction.created_at,
+          profit: transactionProfit,
+          hour: transactionDate.getHours()
+        };
+      });
+
+      setTransactions(processedTransactions);
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate metrics
-  const today = new Date();
-  const todayTransactions = transactions.filter(t => {
-    const transactionDate = new Date(t.timestamp);
-    return transactionDate.toDateString() === today.toDateString();
-  });
-
-  const totalSales = todayTransactions.reduce((sum, t) => sum + t.total, 0);
-  const totalTransactions = todayTransactions.length;
-  const averageTransaction = totalTransactions > 0 ? totalSales / totalTransactions : 0;
-
-  // Generate chart data
-  const generateChartData = () => {
-    const data = [];
+  const calculateAnalytics = () => {
     const now = new Date();
-    
+    let filteredTransactions = transactions;
+
+    // Filter transactions based on timeframe
     if (timeframe === 'daily') {
-      // Last 7 days
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        const dayTransactions = transactions.filter(t => {
-          const transactionDate = new Date(t.timestamp);
-          return transactionDate.toDateString() === date.toDateString();
-        });
-        
-        data.push({
-          name: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-          sales: dayTransactions.reduce((sum, t) => sum + t.total, 0),
-          transactions: dayTransactions.length
-        });
-      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      filteredTransactions = transactions.filter(t => {
+        const transactionDate = new Date(t.timestamp);
+        transactionDate.setHours(0, 0, 0, 0);
+        return transactionDate.getTime() === today.getTime();
+      });
+    } else if (timeframe === 'weekly') {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      filteredTransactions = transactions.filter(t => 
+        new Date(t.timestamp) >= weekAgo
+      );
+    } else if (timeframe === 'monthly') {
+      const monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      filteredTransactions = transactions.filter(t => 
+        new Date(t.timestamp) >= monthAgo
+      );
     }
-    
-    return data;
-  };
 
-  const chartData = generateChartData();
+    // Calculate basic metrics
+    const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
+    const totalProfit = filteredTransactions.reduce((sum, t) => sum + t.profit, 0);
+    const totalCost = totalRevenue - totalProfit;
+    const totalTransactions = filteredTransactions.length;
+    const averageTransactionValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+    const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
 
-  // Top selling products
-  const getTopProducts = () => {
-    const productSales: { [key: string]: { name: string; quantity: number; revenue: number } } = {};
-    
-    transactions.forEach(transaction => {
+    // Calculate top selling products
+    const productSales = new Map();
+    filteredTransactions.forEach(transaction => {
       transaction.items.forEach(item => {
-        if (!productSales[item.name]) {
-          productSales[item.name] = { name: item.name, quantity: 0, revenue: 0 };
+        const product = products.find(p => p.id === item.id);
+        if (product) {
+          const existing = productSales.get(item.id) || {
+            name: product.name,
+            quantity: 0,
+            revenue: 0,
+            profit: 0
+          };
+          const itemProfit = (product.selling - product.capital) * item.quantity;
+          productSales.set(item.id, {
+            ...existing,
+            quantity: existing.quantity + item.quantity,
+            revenue: existing.revenue + (item.price * item.quantity),
+            profit: existing.profit + itemProfit
+          });
         }
-        productSales[item.name].quantity += item.quantity;
-        productSales[item.name].revenue += item.price * item.quantity;
       });
     });
-    
-    return Object.values(productSales)
+
+    const topSellingProducts = Array.from(productSales.values())
       .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5);
+      .slice(0, 10);
+
+    // Calculate category performance
+    const categoryMap = new Map();
+    filteredTransactions.forEach(transaction => {
+      transaction.items.forEach(item => {
+        const product = products.find(p => p.id === item.id);
+        if (product) {
+          const category = product.category || 'Uncategorized';
+          const existing = categoryMap.get(category) || {
+            category,
+            revenue: 0,
+            profit: 0,
+            transactions: 0
+          };
+          const itemProfit = (product.selling - product.capital) * item.quantity;
+          categoryMap.set(category, {
+            ...existing,
+            revenue: existing.revenue + (item.price * item.quantity),
+            profit: existing.profit + itemProfit,
+            transactions: existing.transactions + 1
+          });
+        }
+      });
+    });
+
+    const categoryPerformance = Array.from(categoryMap.values())
+      .sort((a, b) => b.revenue - a.revenue);
+
+    // Calculate hourly performance
+    const hourlyMap = new Map();
+    for (let hour = 0; hour < 24; hour++) {
+      hourlyMap.set(hour, { hour, transactions: 0, revenue: 0 });
+    }
+
+    filteredTransactions.forEach(transaction => {
+      const hour = transaction.hour;
+      const existing = hourlyMap.get(hour);
+      hourlyMap.set(hour, {
+        hour,
+        transactions: existing.transactions + 1,
+        revenue: existing.revenue + transaction.total
+      });
+    });
+
+    const hourlyPerformance = Array.from(hourlyMap.values())
+      .filter(h => h.transactions > 0);
+
+    // Calculate daily trends (last 30 days)
+    const dailyMap = new Map();
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      dailyMap.set(dateStr, {
+        date: dateStr,
+        revenue: 0,
+        profit: 0,
+        transactions: 0
+      });
+    }
+
+    transactions.forEach(transaction => {
+      const dateStr = transaction.timestamp.split('T')[0];
+      if (dailyMap.has(dateStr)) {
+        const existing = dailyMap.get(dateStr);
+        dailyMap.set(dateStr, {
+          ...existing,
+          revenue: existing.revenue + transaction.total,
+          profit: existing.profit + transaction.profit,
+          transactions: existing.transactions + 1
+        });
+      }
+    });
+
+    const dailyTrends = Array.from(dailyMap.values());
+
+    setAnalytics({
+      totalRevenue,
+      totalProfit,
+      totalCost,
+      totalTransactions,
+      averageTransactionValue,
+      profitMargin,
+      topSellingProducts,
+      categoryPerformance,
+      hourlyPerformance,
+      dailyTrends
+    });
   };
 
-  const topProducts = getTopProducts();
+  const formatCurrency = (amount: number) => `₱${amount.toFixed(2)}`;
+  const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
+
+  const getComparisonData = (current: number, previous: number) => {
+    if (previous === 0) return { change: 0, isPositive: true };
+    const change = ((current - previous) / previous) * 100;
+    return { change: Math.abs(change), isPositive: change >= 0 };
+  };
+
+  if (loading) {
+    return <div className="text-center py-8 text-muted-foreground">Loading enhanced sales analytics...</div>;
+  }
+
+  if (!analytics) {
+    return <div className="text-center py-8 text-muted-foreground">Calculating analytics...</div>;
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Sales Reports</h1>
-          <p className="text-muted-foreground">Track your business performance and insights</p>
+          <h1 className="text-3xl font-bold text-foreground">Sales Analytics</h1>
+          <p className="text-muted-foreground">Comprehensive business insights and performance metrics</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
@@ -149,18 +355,33 @@ export const SalesReports = () => {
         </div>
       </div>
 
+      {/* Timeframe Selector */}
+      <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit">
+        {(['daily', 'weekly', 'monthly'] as const).map((period) => (
+          <Button
+            key={period}
+            variant={timeframe === period ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setTimeframe(period)}
+            className="capitalize"
+          >
+            {period}
+          </Button>
+        ))}
+      </div>
+
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Today's Sales</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
               <p className="text-2xl font-bold text-foreground">
-                {loading ? "Loading..." : `₱${totalSales.toFixed(2)}`}
+                {formatCurrency(analytics.totalRevenue)}
               </p>
               <p className="text-sm text-success flex items-center gap-1 mt-1">
                 <TrendingUp className="w-4 h-4" />
-                +12% from yesterday
+                {timeframe} performance
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
@@ -172,16 +393,33 @@ export const SalesReports = () => {
         <Card className="p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Transactions</p>
+              <p className="text-sm font-medium text-muted-foreground">Net Profit</p>
               <p className="text-2xl font-bold text-foreground">
-                {loading ? "Loading..." : totalTransactions}
+                {formatCurrency(analytics.totalProfit)}
               </p>
               <p className="text-sm text-success flex items-center gap-1 mt-1">
-                <TrendingUp className="w-4 h-4" />
-                +8 from yesterday
+                <Target className="w-4 h-4" />
+                {formatPercentage(analytics.profitMargin)} margin
               </p>
             </div>
             <div className="w-12 h-12 bg-success rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 shadow-soft">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Transactions</p>
+              <p className="text-2xl font-bold text-foreground">
+                {analytics.totalTransactions}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Avg: {formatCurrency(analytics.averageTransactionValue)}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-warning rounded-lg flex items-center justify-center">
               <ShoppingCart className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -190,33 +428,16 @@ export const SalesReports = () => {
         <Card className="p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Average Sale</p>
-              <p className="text-2xl font-bold text-foreground">
-                {loading ? "Loading..." : `₱${averageTransaction.toFixed(2)}`}
-              </p>
-              <p className="text-sm text-warning flex items-center gap-1 mt-1">
-                <TrendingDown className="w-4 h-4" />
-                -2% from yesterday
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-warning rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6 shadow-soft">
-          <div className="flex items-center justify-between">
-            <div>
               <p className="text-sm font-medium text-muted-foreground">Profit Margin</p>
-              <p className="text-2xl font-bold text-foreground">32%</p>
-              <p className="text-sm text-success flex items-center gap-1 mt-1">
-                <TrendingUp className="w-4 h-4" />
-                +5% from yesterday
+              <p className="text-2xl font-bold text-foreground">
+                {formatPercentage(analytics.profitMargin)}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Cost: {formatCurrency(analytics.totalCost)}
               </p>
             </div>
             <div className="w-12 h-12 bg-accent-foreground rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
+              <BarChart3 className="w-6 h-6 text-white" />
             </div>
           </div>
         </Card>
@@ -224,54 +445,63 @@ export const SalesReports = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales Trend Chart */}
+        {/* Revenue & Profit Trend */}
         <Card className="p-6 shadow-soft">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Sales Trend</h3>
-            <div className="flex gap-1">
-              {(['daily', 'weekly', 'monthly'] as const).map((period) => (
-                <Button
-                  key={period}
-                  variant={timeframe === period ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeframe(period)}
-                  className="capitalize"
-                >
-                  {period}
-                </Button>
-              ))}
-            </div>
-          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Revenue & Profit Trend</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <AreaChart data={analytics.dailyTrends}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`₱${value}`, 'Sales']} />
-                <Line 
-                  type="monotone" 
-                  dataKey="sales" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={2}
-                  dot={{ fill: "hsl(var(--primary))" }}
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 />
-              </LineChart>
+                <YAxis />
+                <Tooltip 
+                  formatter={(value, name) => [formatCurrency(Number(value)), name === 'revenue' ? 'Revenue' : 'Profit']}
+                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stackId="1"
+                  stroke="hsl(var(--primary))" 
+                  fill="hsl(var(--primary))"
+                  fillOpacity={0.8}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="profit" 
+                  stackId="2"
+                  stroke="hsl(var(--success))" 
+                  fill="hsl(var(--success))"
+                  fillOpacity={0.8}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        {/* Transaction Volume Chart */}
+        {/* Hourly Performance */}
         <Card className="p-6 shadow-soft">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Transaction Volume</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Hourly Sales Performance</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
+              <BarChart data={analytics.hourlyPerformance}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis 
+                  dataKey="hour" 
+                  tickFormatter={(value) => `${value}:00`}
+                />
                 <YAxis />
-                <Tooltip />
-                <Bar dataKey="transactions" fill="hsl(var(--success))" />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    name === 'revenue' ? formatCurrency(Number(value)) : value,
+                    name === 'revenue' ? 'Revenue' : 'Transactions'
+                  ]}
+                  labelFormatter={(value) => `${value}:00`}
+                />
+                <Bar dataKey="revenue" fill="hsl(var(--primary))" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -279,50 +509,87 @@ export const SalesReports = () => {
       </div>
 
       {/* Bottom Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Products */}
         <Card className="p-6 shadow-soft">
           <h3 className="text-lg font-semibold text-foreground mb-4">Top Selling Products</h3>
           <div className="space-y-3">
-            {topProducts.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No sales data available</p>
-            ) : (
-              topProducts.map((product, index) => (
-                <div key={product.name} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center">
-                      {index + 1}
-                    </Badge>
-                    <div>
-                      <p className="font-medium text-foreground">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">{product.quantity} sold</p>
-                    </div>
+            {analytics.topSellingProducts.slice(0, 5).map((product, index) => (
+              <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center">
+                    {index + 1}
+                  </Badge>
+                  <div>
+                    <p className="font-medium text-foreground">{product.name}</p>
+                    <p className="text-sm text-muted-foreground">{product.quantity} sold</p>
                   </div>
-                  <p className="font-semibold text-foreground">₱{product.revenue.toFixed(2)}</p>
                 </div>
-              ))
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">{formatCurrency(product.revenue)}</p>
+                  <p className="text-sm text-success">{formatCurrency(product.profit)} profit</p>
+                </div>
+              </div>
+            ))}
+            {analytics.topSellingProducts.length === 0 && (
+              <p className="text-muted-foreground text-center py-4">No sales data available</p>
             )}
           </div>
         </Card>
 
-        {/* Recent Transactions */}
+        {/* Category Performance */}
         <Card className="p-6 shadow-soft">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Recent Transactions</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Category Performance</h3>
           <div className="space-y-3">
-            {transactions.slice(0, 5).map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <div>
-                  <p className="font-medium text-foreground">#{transaction.id}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(transaction.timestamp).toLocaleString()}
-                  </p>
+            {analytics.categoryPerformance.slice(0, 5).map((category, index) => (
+              <div key={index} className="p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-foreground">{category.category}</p>
+                  <p className="font-semibold text-foreground">{formatCurrency(category.revenue)}</p>
                 </div>
-                <p className="font-semibold text-foreground">₱{transaction.total.toFixed(2)}</p>
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>{category.transactions} transactions</span>
+                  <span className="text-success">{formatCurrency(category.profit)} profit</span>
+                </div>
               </div>
             ))}
-            {transactions.length === 0 && (
-              <p className="text-muted-foreground text-center py-4">No transactions yet</p>
+            {analytics.categoryPerformance.length === 0 && (
+              <p className="text-muted-foreground text-center py-4">No category data available</p>
             )}
+          </div>
+        </Card>
+
+        {/* Quick Stats */}
+        <Card className="p-6 shadow-soft">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Quick Statistics</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Best Hour</span>
+              <span className="font-medium">
+                {analytics.hourlyPerformance.length > 0 
+                  ? `${analytics.hourlyPerformance.reduce((best, hour) => 
+                      hour.revenue > best.revenue ? hour : best
+                    ).hour}:00`
+                  : 'N/A'
+                }
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Products Sold</span>
+              <span className="font-medium">
+                {analytics.topSellingProducts.reduce((sum, p) => sum + p.quantity, 0)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Categories Active</span>
+              <span className="font-medium">{analytics.categoryPerformance.length}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Cost Ratio</span>
+              <span className="font-medium">
+                {formatPercentage(analytics.totalRevenue > 0 ? (analytics.totalCost / analytics.totalRevenue) * 100 : 0)}
+              </span>
+            </div>
           </div>
         </Card>
       </div>
