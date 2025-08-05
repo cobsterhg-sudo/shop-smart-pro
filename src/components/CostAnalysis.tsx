@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PriceCalculatorModal } from "./PriceCalculatorModal";
+import { RetailPriceComparisonModal } from "./RetailPriceComparisonModal";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -58,6 +59,7 @@ export const CostAnalysis = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCalculator, setShowCalculator] = useState(false);
+  const [showRetailComparison, setShowRetailComparison] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -215,13 +217,22 @@ export const CostAnalysis = () => {
           <h1 className="text-3xl font-bold text-foreground">Cost Price Analysis</h1>
           <p className="text-muted-foreground">Analyze margins, optimize pricing, and maximize profitability</p>
         </div>
-        <Button 
-          className="bg-gradient-primary hover:opacity-90"
-          onClick={() => setShowCalculator(true)}
-        >
-          <Calculator className="w-4 h-4 mr-2" />
-          Price Calculator
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            className="bg-gradient-primary hover:opacity-90"
+            onClick={() => setShowCalculator(true)}
+          >
+            <Calculator className="w-4 h-4 mr-2" />
+            Price Calculator
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => setShowRetailComparison(true)}
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Retail Comparison
+          </Button>
+        </div>
       </div>
 
       {/* Key Metrics */}
@@ -442,6 +453,11 @@ export const CostAnalysis = () => {
       <PriceCalculatorModal
         isOpen={showCalculator}
         onClose={() => setShowCalculator(false)}
+      />
+      
+      <RetailPriceComparisonModal
+        isOpen={showRetailComparison}
+        onClose={() => setShowRetailComparison(false)}
       />
     </div>
   );
