@@ -55,21 +55,25 @@ export const BarcodeScanner = ({ isOpen, onClose, onScan }: BarcodeScannerProps)
       // Initialize the code reader
       codeReader.current = new BrowserMultiFormatReader();
 
-      // Start scanning
-      const result = await codeReader.current.decodeOnceFromVideoDevice(
+      // Start continuous scanning
+      await codeReader.current.decodeFromVideoDevice(
         undefined, // Use default camera
-        videoRef.current
+        videoRef.current,
+        (result, error) => {
+          if (result) {
+            const barcode = result.getText();
+            toast({
+              title: "Barcode Scanned!",
+              description: `Found: ${barcode}`,
+            });
+            onScan(barcode);
+            onClose();
+          }
+          if (error && error.name !== 'NotFoundException') {
+            console.error('Scanning error:', error);
+          }
+        }
       );
-
-      if (result) {
-        const barcode = result.getText();
-        toast({
-          title: "Barcode Scanned!",
-          description: `Found: ${barcode}`,
-        });
-        onScan(barcode);
-        onClose();
-      }
     } catch (err: any) {
       console.error('Scanning error:', err);
       if (err.name === 'NotAllowedError') {
@@ -82,7 +86,6 @@ export const BarcodeScanner = ({ isOpen, onClose, onScan }: BarcodeScannerProps)
       } else {
         setError('Failed to scan barcode. Please try again.');
       }
-    } finally {
       setIsScanning(false);
     }
   };
