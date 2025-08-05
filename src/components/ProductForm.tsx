@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,7 +62,47 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
     description: product?.description || "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const { toast } = useToast();
+
+  // Handle virtual keyboard on mobile
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleResize = () => {
+      // Detect keyboard by viewport height change
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const screenHeight = window.screen.height;
+      const threshold = screenHeight * 0.75; // Keyboard likely visible if viewport < 75% of screen
+      
+      setKeyboardVisible(viewportHeight < threshold);
+    };
+
+    const handleVisualViewportChange = () => {
+      if (window.visualViewport) {
+        const keyboardHeight = window.screen.height - window.visualViewport.height;
+        setKeyboardVisible(keyboardHeight > 150); // Keyboard threshold
+      }
+    };
+
+    // Listen for viewport changes
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleVisualViewportChange);
+    } else {
+      window.addEventListener('resize', handleResize);
+    }
+
+    // Initial check
+    handleResize();
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleVisualViewportChange);
+      } else {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,7 +177,11 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] animate-scale-in">
+      <DialogContent 
+        className={`sm:max-w-[500px] animate-scale-in max-h-[90vh] overflow-hidden flex flex-col ${
+          keyboardVisible ? 'fixed top-4 bottom-4 left-4 right-4 sm:relative sm:top-auto sm:bottom-auto sm:left-auto sm:right-auto' : ''
+        }`}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5 text-primary" />
@@ -148,7 +192,8 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className={`flex-1 overflow-y-auto ${keyboardVisible ? 'max-h-[60vh] sm:max-h-none' : ''}`}>
+          <form onSubmit={handleSubmit} className="space-y-4 p-1">{/* Added padding for better scroll */}
           {/* Product Name */}
           <div>
             <Label htmlFor="name">Product Name *</Label>
@@ -269,31 +314,35 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
             />
           </div>
 
-          {/* Product Photo Section */}
-          <div>
-            <Label>Product Photo</Label>
-            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-              <Camera className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground mb-2">Upload product photo</p>
-              <Button type="button" variant="outline" size="sm">
-                Choose File
-              </Button>
-            </div>
-          </div>
+            {/* Product Photo Section - Hide on keyboard visible to save space */}
+            {!keyboardVisible && (
+              <div>
+                <Label>Product Photo</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                  <Camera className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground mb-2">Upload product photo</p>
+                  <Button type="button" variant="outline" size="sm">
+                    Choose File
+                  </Button>
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isLoading}
-              className="bg-gradient-primary hover:opacity-90"
-            >
-              {isLoading ? 'Saving...' : (product ? 'Update Product' : 'Add Product')}
-            </Button>
-          </DialogFooter>
-        </form>
+        <DialogFooter className={`${keyboardVisible ? 'border-t bg-background/95 backdrop-blur-sm p-4' : ''}`}>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isLoading}
+            className="bg-gradient-primary hover:opacity-90"
+            onClick={handleSubmit}
+          >
+            {isLoading ? 'Saving...' : (product ? 'Update Product' : 'Add Product')}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
