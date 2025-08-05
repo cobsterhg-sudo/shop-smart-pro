@@ -85,39 +85,41 @@ export const Settings = ({ onLogout }: SettingsProps) => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-4 sm:space-y-6 max-w-4xl animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground">Manage your application preferences and account</p>
+      <div className="animate-slide-up">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground gradient-text">Settings</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">Manage your application preferences and account</p>
       </div>
 
       {/* Account Section */}
-      <Card className="p-6 shadow-soft">
+      <Card className="p-4 sm:p-6 shadow-soft ios-card bg-gradient-card backdrop-blur-sm border border-border/50 animate-bounce-in">
         <div className="flex items-center gap-3 mb-4">
-          <User className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Account</h2>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
+            <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+          </div>
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">Account</h2>
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 ios-button">
             <div>
-              <p className="font-medium text-foreground">Email</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-medium text-foreground text-sm sm:text-base">Email</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {userProfile?.user?.email || "Loading..."}
               </p>
             </div>
-            <Badge variant="secondary">User</Badge>
+            <Badge variant="secondary" className="ios-button">User</Badge>
           </div>
           
           <Separator />
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 ios-button">
             <div>
-              <p className="font-medium text-foreground">Account Type</p>
-              <p className="text-sm text-muted-foreground">Supabase Account</p>
+              <p className="font-medium text-foreground text-sm sm:text-base">Account Type</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Supabase Account</p>
             </div>
-            <Badge variant="outline">Cloud Storage</Badge>
+            <Badge variant="outline" className="ios-button">Cloud Storage</Badge>
           </div>
           
           <Separator />
@@ -125,75 +127,81 @@ export const Settings = ({ onLogout }: SettingsProps) => {
           <Button 
             variant="destructive" 
             onClick={onLogout}
-            className="gap-2"
+            className="gap-2 ios-button w-full sm:w-auto"
           >
             <LogOut className="w-4 h-4" />
-            Sign Out
+            <span className="text-sm sm:text-base">Sign Out</span>
           </Button>
         </div>
       </Card>
 
       {/* Appearance Section */}
-      <Card className="p-6 shadow-soft">
+      <Card className="p-4 sm:p-6 shadow-soft ios-card bg-gradient-card backdrop-blur-sm border border-border/50 animate-bounce-in" style={{ animationDelay: '100ms' }}>
         <div className="flex items-center gap-3 mb-4">
-          <Palette className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Appearance</h2>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-warning rounded-xl flex items-center justify-center shadow-glow">
+            <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+          </div>
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">Appearance</h2>
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 ios-button">
             <div className="flex items-center gap-3">
-              {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+              {darkMode ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-warning" />}
               <div>
-                <p className="font-medium text-foreground">Dark Mode</p>
-                <p className="text-sm text-muted-foreground">Toggle between light and dark themes</p>
+                <p className="font-medium text-foreground text-sm sm:text-base">Dark Mode</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Toggle between light and dark themes</p>
               </div>
             </div>
             <Switch
               checked={darkMode}
               onCheckedChange={handleThemeChange}
+              className="ios-button"
             />
           </div>
         </div>
       </Card>
 
       {/* Notifications Section */}
-      <Card className="p-6 shadow-soft">
+      <Card className="p-4 sm:p-6 shadow-soft ios-card bg-gradient-card backdrop-blur-sm border border-border/50 animate-bounce-in" style={{ animationDelay: '200ms' }}>
         <div className="flex items-center gap-3 mb-4">
-          <Bell className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Notifications</h2>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-success rounded-xl flex items-center justify-center shadow-glow">
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+          </div>
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">Notifications</h2>
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 ios-button">
             <div>
-              <p className="font-medium text-foreground">Push Notifications</p>
-              <p className="text-sm text-muted-foreground">Receive alerts for low stock and sales</p>
+              <p className="font-medium text-foreground text-sm sm:text-base">Push Notifications</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Receive alerts for low stock and sales</p>
             </div>
             <Switch
               checked={notifications}
               onCheckedChange={handleNotificationChange}
+              className="ios-button"
             />
           </div>
           
           <Separator />
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 ios-button">
             <div>
-              <p className="font-medium text-foreground">Low Stock Alerts</p>
-              <p className="text-sm text-muted-foreground">Get notified when products are running low</p>
+              <p className="font-medium text-foreground text-sm sm:text-base">Low Stock Alerts</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Get notified when products are running low</p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="ios-button" />
           </div>
           
           <Separator />
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 ios-button">
             <div>
-              <p className="font-medium text-foreground">Daily Sales Summary</p>
-              <p className="text-sm text-muted-foreground">Receive end-of-day sales reports</p>
+              <p className="font-medium text-foreground text-sm sm:text-base">Daily Sales Summary</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Receive end-of-day sales reports</p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="ios-button" />
           </div>
         </div>
       </Card>

@@ -486,17 +486,17 @@ export const SalesReports = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="space-y-3 sm:space-y-4 animate-slide-up">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Sales Analytics</h1>
-          <p className="text-muted-foreground">Comprehensive business insights and performance metrics</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground gradient-text">Sales Analytics</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Comprehensive business insights and performance metrics</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 h-10 sm:h-11 ios-button">
                 <Filter className="w-4 h-4" />
                 Filter
               </Button>
