@@ -532,12 +532,12 @@ export const SalesReports = () => {
                 
                 <div>
                   <Label htmlFor="category">Category</Label>
-                  <Select value={filters.category} onValueChange={(value) => setFilters({...filters, category: value})}>
+                  <Select value={filters.category} onValueChange={(value) => setFilters({...filters, category: value === 'all' ? '' : value})}>
                     <SelectTrigger>
                       <SelectValue placeholder="All categories" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All categories</SelectItem>
+                      <SelectItem value="all">All categories</SelectItem>
                       {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
