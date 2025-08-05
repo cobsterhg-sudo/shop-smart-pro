@@ -11,11 +11,7 @@ import {
   Trash2, 
   Package,
   AlertTriangle,
-  CheckCircle,
-  TrendingUp,
-  DollarSign,
-  Target,
-  AlertCircle
+  CheckCircle
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,7 +70,7 @@ export const Inventory = () => {
       product.barcode.includes(searchTerm);
     const matchesCategory = filterCategory === "all" || product.category === filterCategory;
     
-    // Apply active filter
+    // Apply active filter (only stock-related filters)
     let matchesFilter = true;
     switch (activeFilter) {
       case "in-stock":
@@ -86,13 +82,6 @@ export const Inventory = () => {
       case "out-of-stock":
         matchesFilter = product.stock === 0;
         break;
-      case "high-margin":
-        const margin = ((product.selling - product.capital) / product.capital * 100);
-        matchesFilter = margin >= 50;
-        break;
-      case "problem-items":
-        matchesFilter = product.stock === 0 || product.stock <= 5;
-        break;
       default:
         matchesFilter = true;
     }
@@ -100,16 +89,10 @@ export const Inventory = () => {
     return matchesSearch && matchesCategory && matchesFilter;
   });
 
-  // Calculate stats
+  // Calculate stock stats only
   const inStockCount = products.filter(p => p.stock > 10).length;
   const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= 10).length;
   const outOfStockCount = products.filter(p => p.stock === 0).length;
-  const totalProfit = products.reduce((sum, p) => sum + ((p.selling - p.capital) * p.stock), 0);
-  const averageMargin = products.length > 0 
-    ? products.reduce((sum, p) => sum + ((p.selling - p.capital) / p.capital * 100), 0) / products.length 
-    : 0;
-  const highMarginCount = products.filter(p => ((p.selling - p.capital) / p.capital * 100) >= 50).length;
-  const problemItemsCount = products.filter(p => p.stock === 0 || p.stock <= 5).length;
 
   const getStatusBadge = (status: string, stock: number) => {
     if (stock === 0) {
@@ -297,7 +280,7 @@ export const Inventory = () => {
         </div>
       </Card>
 
-      {/* Inventory Stats */}
+      {/* Inventory Stats - Stock Related Only */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Total Products */}
         <Card 
@@ -351,62 +334,6 @@ export const Inventory = () => {
             <div>
               <p className="text-sm text-muted-foreground">Out of Stock</p>
               <p className="text-2xl font-bold text-foreground">{outOfStockCount}</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Total Profit */}
-        <Card 
-          className="p-4 shadow-soft cursor-pointer hover:shadow-medium transition-all duration-200 hover-scale"
-          onClick={() => setActiveFilter("all")}
-        >
-          <div className="flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-success" />
-            <div>
-              <p className="text-sm text-muted-foreground">Total Profit</p>
-              <p className="text-2xl font-bold text-foreground">₱{totalProfit.toFixed(2)}</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Average Margin */}
-        <Card 
-          className="p-4 shadow-soft cursor-pointer hover:shadow-medium transition-all duration-200 hover-scale"
-          onClick={() => setActiveFilter("all")}
-        >
-          <div className="flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-primary" />
-            <div>
-              <p className="text-sm text-muted-foreground">Average Margin</p>
-              <p className="text-2xl font-bold text-foreground">{averageMargin.toFixed(1)}%</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* High Margin Items */}
-        <Card 
-          className="p-4 shadow-soft cursor-pointer hover:shadow-medium transition-all duration-200 hover-scale"
-          onClick={() => setActiveFilter("high-margin")}
-        >
-          <div className="flex items-center gap-3">
-            <Target className="w-8 h-8 text-success" />
-            <div>
-              <p className="text-sm text-muted-foreground">High Margin Items</p>
-              <p className="text-2xl font-bold text-foreground">{highMarginCount}</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Problem Items */}
-        <Card 
-          className="p-4 shadow-soft cursor-pointer hover:shadow-medium transition-all duration-200 hover-scale"
-          onClick={() => setActiveFilter("problem-items")}
-        >
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-8 h-8 text-destructive" />
-            <div>
-              <p className="text-sm text-muted-foreground">Problem Items</p>
-              <p className="text-2xl font-bold text-foreground">{problemItemsCount}</p>
             </div>
           </div>
         </Card>
