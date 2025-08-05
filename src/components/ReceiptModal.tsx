@@ -10,15 +10,17 @@ import {
 import { Receipt, Download, Printer } from "lucide-react";
 
 interface ReceiptData {
-  id: number;
+  id: number | string;
   items: Array<{
     name: string;
     quantity: number;
     price: number;
   }>;
   total: number;
-  amountReceived: number;
-  change: number;
+  amountReceived?: number;
+  amount_received?: number;
+  change?: number;
+  change_amount?: number;
   timestamp: string;
 }
 
@@ -30,6 +32,11 @@ interface ReceiptModalProps {
 
 export const ReceiptModal = ({ receipt, isOpen, onClose }: ReceiptModalProps) => {
   if (!receipt) return null;
+
+  // Helper functions to safely get values with fallbacks
+  const getAmountReceived = () => receipt.amountReceived ?? receipt.amount_received ?? 0;
+  const getChange = () => receipt.change ?? receipt.change_amount ?? 0;
+  const getTotal = () => receipt.total ?? 0;
 
   const printReceipt = () => {
     const printContent = document.getElementById('receipt-content');
@@ -65,14 +72,14 @@ Transaction #${receipt.id}
 ${new Date(receipt.timestamp).toLocaleString()}
 ================================
 
-${receipt.items.map(item => 
-  `${item.name}\n${item.quantity}x ₱${item.price.toFixed(2)} = ₱${(item.quantity * item.price).toFixed(2)}`
+${receipt.items?.map(item => 
+  `${item?.name || 'Unknown Item'}\n${item?.quantity || 0}x ₱${(item?.price || 0).toFixed(2)} = ₱${((item?.quantity || 0) * (item?.price || 0)).toFixed(2)}`
 ).join('\n\n')}
 
 ================================
-TOTAL: ₱${receipt.total.toFixed(2)}
-RECEIVED: ₱${receipt.amountReceived.toFixed(2)}
-CHANGE: ₱${receipt.change.toFixed(2)}
+TOTAL: ₱${getTotal().toFixed(2)}
+RECEIVED: ₱${getAmountReceived().toFixed(2)}
+CHANGE: ₱${getChange().toFixed(2)}
 
 Thank you for your business!
 `;
@@ -105,17 +112,17 @@ Thank you for your business!
           </div>
 
           <div className="items space-y-2 mb-4">
-            {receipt.items.map((item, index) => (
+            {receipt.items?.map((item, index) => (
               <div key={index}>
                 <div className="flex justify-between">
-                  <span className="font-medium">{item.name}</span>
+                  <span className="font-medium">{item?.name || 'Unknown Item'}</span>
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>{item.quantity}x ₱{item.price.toFixed(2)}</span>
-                  <span>₱{(item.quantity * item.price).toFixed(2)}</span>
+                  <span>{item?.quantity || 0}x ₱{(item?.price || 0).toFixed(2)}</span>
+                  <span>₱{((item?.quantity || 0) * (item?.price || 0)).toFixed(2)}</span>
                 </div>
               </div>
-            ))}
+            )) || []}
           </div>
 
           <Separator className="my-4" />
@@ -123,15 +130,15 @@ Thank you for your business!
           <div className="totals space-y-2">
             <div className="flex justify-between text-lg font-bold">
               <span>TOTAL:</span>
-              <span>₱{receipt.total.toFixed(2)}</span>
+              <span>₱{getTotal().toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>RECEIVED:</span>
-              <span>₱{receipt.amountReceived.toFixed(2)}</span>
+              <span>₱{getAmountReceived().toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>CHANGE:</span>
-              <span>₱{receipt.change.toFixed(2)}</span>
+              <span>₱{getChange().toFixed(2)}</span>
             </div>
           </div>
 
