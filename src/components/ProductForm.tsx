@@ -179,8 +179,17 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
         className={`sm:max-w-[500px] animate-scale-in max-h-[90vh] overflow-hidden flex flex-col ${
-          keyboardVisible ? 'fixed top-4 bottom-4 left-4 right-4 sm:relative sm:top-auto sm:bottom-auto sm:left-auto sm:right-auto' : ''
+          keyboardVisible ? 'sm:fixed sm:inset-4 h-auto' : ''
         }`}
+        style={{
+          position: keyboardVisible ? 'fixed' : undefined,
+          top: keyboardVisible ? '1rem' : undefined,
+          left: keyboardVisible ? '1rem' : undefined,
+          right: keyboardVisible ? '1rem' : undefined,
+          bottom: keyboardVisible ? '1rem' : undefined,
+          transform: keyboardVisible ? 'none' : undefined,
+          margin: keyboardVisible ? '0' : undefined,
+        }}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

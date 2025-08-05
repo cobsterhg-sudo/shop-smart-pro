@@ -33,7 +33,14 @@ export const BarcodeScanner = ({ isOpen, onClose, onScan }: BarcodeScannerProps)
 
   const checkCameraPermission = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Use getUserMedia with more specific constraints
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment', // Prefer back camera
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        } 
+      });
       setHasPermission(true);
       setError(null);
       // Stop the test stream
@@ -41,7 +48,7 @@ export const BarcodeScanner = ({ isOpen, onClose, onScan }: BarcodeScannerProps)
     } catch (err) {
       console.error('Camera permission error:', err);
       setHasPermission(false);
-      setError('Camera access denied. Please allow camera access and try again.');
+      setError('Camera access denied. Please allow camera access in your browser settings and try again.');
     }
   };
 
@@ -105,7 +112,14 @@ export const BarcodeScanner = ({ isOpen, onClose, onScan }: BarcodeScannerProps)
 
   const requestCameraAccess = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Request with specific constraints
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        } 
+      });
       setHasPermission(true);
       setError(null);
       stream.getTracks().forEach(track => track.stop());
@@ -115,7 +129,7 @@ export const BarcodeScanner = ({ isOpen, onClose, onScan }: BarcodeScannerProps)
       });
     } catch (err) {
       console.error('Camera permission request failed:', err);
-      setError('Failed to get camera access. Please check your browser settings.');
+      setError('Camera access denied. Please check your browser settings and reload the page.');
     }
   };
 
