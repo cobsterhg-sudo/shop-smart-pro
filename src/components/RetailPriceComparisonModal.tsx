@@ -181,47 +181,49 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] animate-scale-in max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            Retail Price Comparison
+      <DialogContent className="w-full h-full sm:max-w-[700px] sm:h-auto sm:max-h-[90vh] overflow-y-auto p-3 sm:p-6 animate-scale-in">
+        <DialogHeader className="pb-3">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            Price Comparison
           </DialogTitle>
-          <DialogDescription>
-            Compare your pricing against standard retail store categories to optimize competitiveness
+          <DialogDescription className="text-sm">
+            Compare your pricing against retail standards
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Product Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             <div>
-              <Label htmlFor="product-name">Product Name</Label>
+              <Label htmlFor="product-name" className="text-sm font-medium">Product Name</Label>
               <Input
                 id="product-name"
                 type="text"
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
                 placeholder="e.g., Coca Cola 1.5L"
+                className="h-11 text-base"
               />
             </div>
 
             <div>
-              <Label htmlFor="product-type">Product Type/Brand</Label>
+              <Label htmlFor="product-type" className="text-sm font-medium">Product Type/Brand</Label>
               <Input
                 id="product-type"
                 type="text"
                 value={productType}
                 onChange={(e) => setProductType(e.target.value)}
                 placeholder="e.g., Soft Drink, Shampoo, etc."
+                className="h-11 text-base"
               />
             </div>
           </div>
 
           {/* Pricing Information */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             <div>
-              <Label htmlFor="cost">Cost Price *</Label>
+              <Label htmlFor="cost" className="text-sm font-medium">Cost Price *</Label>
               <Input
                 id="cost"
                 type="number"
@@ -230,11 +232,12 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
                 value={costPrice}
                 onChange={(e) => setCostPrice(e.target.value)}
                 placeholder="0.00"
+                className="h-11 text-base"
               />
             </div>
 
             <div>
-              <Label htmlFor="my-price">My Selling Price *</Label>
+              <Label htmlFor="my-price" className="text-sm font-medium">My Selling Price *</Label>
               <Input
                 id="my-price"
                 type="number"
@@ -243,13 +246,14 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
                 value={myPrice}
                 onChange={(e) => setMyPrice(e.target.value)}
                 placeholder="0.00"
+                className="h-11 text-base"
               />
             </div>
 
             <div>
-              <Label htmlFor="category">Product Category</Label>
+              <Label htmlFor="category" className="text-sm font-medium">Product Category</Label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -293,26 +297,26 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
                   <Target className="w-4 h-4 text-primary" />
                   Your Current Pricing
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                      <DollarSign className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Selling Price</p>
-                      <p className="font-semibold text-foreground">₱{comparisons.myPrice.toFixed(2)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-success rounded-lg flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Your Margin</p>
-                      <p className="font-semibold text-success">{comparisons.myMargin.toFixed(1)}%</p>
-                    </div>
-                  </div>
-                </div>
+                 <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                   <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+                       <DollarSign className="w-5 h-5 text-white" />
+                     </div>
+                     <div>
+                       <p className="text-sm text-muted-foreground">Selling Price</p>
+                       <p className="font-semibold text-lg text-foreground">₱{comparisons.myPrice.toFixed(2)}</p>
+                     </div>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 bg-success rounded-lg flex items-center justify-center">
+                       <TrendingUp className="w-5 h-5 text-white" />
+                     </div>
+                     <div>
+                       <p className="text-sm text-muted-foreground">Your Margin</p>
+                       <p className="font-semibold text-lg text-success">{comparisons.myMargin.toFixed(1)}%</p>
+                     </div>
+                   </div>
+                 </div>
               </Card>
 
               {/* Retail Store Comparisons */}
@@ -321,25 +325,25 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
                   <ShoppingCart className="w-4 h-4 text-primary" />
                   Standard Retail Pricing
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(comparisons.standardPrices).map(([storeType, price]) => (
-                    <div key={storeType} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-foreground capitalize">
-                          {storeType.replace(/([A-Z])/g, ' $1').trim()} Store
-                        </p>
-                        <p className="text-lg font-bold text-foreground">₱{(price as number).toFixed(2)}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getPriceComparisonIcon(comparisons.differences[storeType])}
-                        <span className={`text-sm font-medium ${getPriceComparisonColor(comparisons.differences[storeType])}`}>
-                          {comparisons.differences[storeType] > 0 ? '+' : ''}
-                          {comparisons.differences[storeType].toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                 <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                   {Object.entries(comparisons.standardPrices).map(([storeType, price]) => (
+                     <div key={storeType} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                       <div>
+                         <p className="font-medium text-foreground capitalize text-sm">
+                           {storeType.replace(/([A-Z])/g, ' $1').trim()} Store
+                         </p>
+                         <p className="text-lg font-bold text-foreground">₱{(price as number).toFixed(2)}</p>
+                       </div>
+                       <div className="flex items-center gap-2">
+                         {getPriceComparisonIcon(comparisons.differences[storeType])}
+                         <span className={`text-sm font-medium ${getPriceComparisonColor(comparisons.differences[storeType])}`}>
+                           {comparisons.differences[storeType] > 0 ? '+' : ''}
+                           {comparisons.differences[storeType].toFixed(1)}%
+                         </span>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
               </Card>
 
               {/* Recommendations */}
@@ -377,11 +381,11 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={reset}>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button variant="outline" onClick={reset} className="h-11 px-6 text-base">
               Reset
             </Button>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} className="h-11 px-6 text-base">
               Close
             </Button>
           </div>
