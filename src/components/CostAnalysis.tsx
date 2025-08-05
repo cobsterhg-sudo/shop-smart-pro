@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PriceCalculatorModal } from "./PriceCalculatorModal";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -56,6 +57,7 @@ interface MarginAnalysis {
 export const CostAnalysis = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCalculator, setShowCalculator] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -213,7 +215,10 @@ export const CostAnalysis = () => {
           <h1 className="text-3xl font-bold text-foreground">Cost Price Analysis</h1>
           <p className="text-muted-foreground">Analyze margins, optimize pricing, and maximize profitability</p>
         </div>
-        <Button className="bg-gradient-primary hover:opacity-90">
+        <Button 
+          className="bg-gradient-primary hover:opacity-90"
+          onClick={() => setShowCalculator(true)}
+        >
           <Calculator className="w-4 h-4 mr-2" />
           Price Calculator
         </Button>
@@ -432,6 +437,12 @@ export const CostAnalysis = () => {
           )}
         </div>
       </Card>
+
+      {/* Price Calculator Modal */}
+      <PriceCalculatorModal
+        isOpen={showCalculator}
+        onClose={() => setShowCalculator(false)}
+      />
     </div>
   );
 };
