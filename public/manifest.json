@@ -1,16 +1,51 @@
 {
-  "name": "BentaMate",
+  "name": "BentaMate - Business Manager",
   "short_name": "BentaMate",
-  "description": "Business Management Tool",
+  "description": "Complete business management solution for inventory, sales, and analytics",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "categories": ["business", "productivity", "finance"],
+  "lang": "en",
+  "scope": "/",
   "icons": [
     {
       "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon"
+      "sizes": "48x48 32x32 16x16",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "540x720",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "BentaMate Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Point of Sale",
+      "short_name": "POS",
+      "description": "Quick access to point of sale",
+      "url": "/?tab=pos",
+      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+    },
+    {
+      "name": "Inventory",
+      "short_name": "Inventory", 
+      "description": "Manage your inventory",
+      "url": "/?tab=inventory",
+      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }

@@ -9,6 +9,7 @@ import { PointOfSale } from "@/components/PointOfSale";
 import { CostAnalysis } from "@/components/CostAnalysis";
 import { SalesReports } from "@/components/SalesReports";
 import { Settings } from "@/components/Settings";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart } from "lucide-react";
@@ -107,6 +108,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+      {/* Offline Indicator */}
+      <OfflineIndicator />
+      
       {/* Mobile Layout */}
       <div className="flex flex-col lg:hidden">
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 px-4 py-3 sm:px-6 sm:py-4">
