@@ -112,8 +112,8 @@ const Index = () => {
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 p-4">
           <h1 className="text-lg font-bold text-foreground">BentaMate</h1>
         </div>
-        <main className="pt-16 pb-20 p-4">
-          <div className="max-w-full mx-auto">
+        <main className="pt-16 pb-20 px-2 sm:px-4">
+          <div className="max-w-full mx-auto overflow-x-hidden">
             {renderContent()}
           </div>
         </main>
@@ -133,8 +133,8 @@ const Index = () => {
           onTabChange={setActiveTab}
           onLogout={handleLogout}
         />
-        <main className="flex-1 p-8 overflow-auto">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-4 lg:p-8 overflow-auto">
+          <div className="max-w-7xl mx-auto overflow-x-hidden">
             {renderContent()}
           </div>
         </main>

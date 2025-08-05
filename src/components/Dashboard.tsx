@@ -109,13 +109,13 @@ export const Dashboard = ({ onTabChange }: DashboardProps) => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {displayStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card 
               key={index} 
-              className="p-6 bg-gradient-card shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm"
+              className="p-4 sm:p-6 bg-gradient-card shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm"
               style={{
                 animationDelay: `${index * 150}ms`
               }}
@@ -139,9 +139,9 @@ export const Dashboard = ({ onTabChange }: DashboardProps) => {
       </div>
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
         {/* Recent Transactions */}
-        <Card className="p-8 shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
+        <Card className="p-4 sm:p-8 shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-foreground">Recent Transactions</h3>
             <button 
@@ -179,7 +179,7 @@ export const Dashboard = ({ onTabChange }: DashboardProps) => {
         </Card>
 
         {/* Quick Actions */}
-        <Card className="p-8 shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
+        <Card className="p-4 sm:p-8 shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
           <h3 className="text-xl font-bold text-foreground mb-6">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-4">
             <button 
