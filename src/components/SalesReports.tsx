@@ -2,6 +2,23 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -13,7 +30,9 @@ import {
   Target,
   BarChart3,
   Clock,
-  Users
+  Users,
+  FileText,
+  X
 } from "lucide-react";
 import { 
   LineChart, 
@@ -95,12 +114,28 @@ interface Analytics {
   }>;
 }
 
+interface Filters {
+  dateFrom: string;
+  dateTo: string;
+  category: string;
+  minAmount: string;
+  maxAmount: string;
+}
+
 export const SalesReports = () => {
   const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [filters, setFilters] = useState<Filters>({
+    dateFrom: '',
+    dateTo: '',
+    category: '',
+    minAmount: '',
+    maxAmount: ''
+  });
 
   useEffect(() => {
     fetchData();
@@ -318,6 +353,121 @@ export const SalesReports = () => {
     });
   };
 
+  const applyFilters = () => {
+    let filteredTransactions = transactions;
+
+    // Apply date filters
+    if (filters.dateFrom) {
+      filteredTransactions = filteredTransactions.filter(t => 
+        new Date(t.timestamp) >= new Date(filters.dateFrom)
+      );
+    }
+    if (filters.dateTo) {
+      filteredTransactions = filteredTransactions.filter(t => 
+        new Date(t.timestamp) <= new Date(filters.dateTo + 'T23:59:59')
+      );
+    }
+
+    // Apply amount filters
+    if (filters.minAmount) {
+      filteredTransactions = filteredTransactions.filter(t => 
+        t.total >= parseFloat(filters.minAmount)
+      );
+    }
+    if (filters.maxAmount) {
+      filteredTransactions = filteredTransactions.filter(t => 
+        t.total <= parseFloat(filters.maxAmount)
+      );
+    }
+
+    // Apply category filter
+    if (filters.category) {
+      filteredTransactions = filteredTransactions.filter(t => 
+        t.items.some(item => {
+          const product = products.find(p => p.id === item.id);
+          return product?.category === filters.category;
+        })
+      );
+    }
+
+    setTransactions(filteredTransactions);
+    setShowFilterDialog(false);
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      dateFrom: '',
+      dateTo: '',
+      category: '',
+      minAmount: '',
+      maxAmount: ''
+    });
+    fetchData(); // Reload original data
+  };
+
+  const exportToCSV = () => {
+    if (!analytics) return;
+
+    const csvData = [];
+    
+    // Add headers
+    csvData.push(['Sales Report Export']);
+    csvData.push(['Generated on:', new Date().toLocaleString()]);
+    csvData.push(['Timeframe:', timeframe]);
+    csvData.push([]);
+    
+    // Add summary metrics
+    csvData.push(['Summary Metrics']);
+    csvData.push(['Total Revenue', formatCurrency(analytics.totalRevenue)]);
+    csvData.push(['Net Profit', formatCurrency(analytics.totalProfit)]);
+    csvData.push(['Profit Margin', formatPercentage(analytics.profitMargin)]);
+    csvData.push(['Total Transactions', analytics.totalTransactions]);
+    csvData.push(['Average Transaction', formatCurrency(analytics.averageTransactionValue)]);
+    csvData.push([]);
+
+    // Add top products
+    csvData.push(['Top Selling Products']);
+    csvData.push(['Rank', 'Product Name', 'Quantity Sold', 'Revenue', 'Profit']);
+    analytics.topSellingProducts.forEach((product, index) => {
+      csvData.push([
+        index + 1,
+        product.name,
+        product.quantity,
+        formatCurrency(product.revenue),
+        formatCurrency(product.profit)
+      ]);
+    });
+    csvData.push([]);
+
+    // Add category performance
+    csvData.push(['Category Performance']);
+    csvData.push(['Category', 'Revenue', 'Profit', 'Transactions']);
+    analytics.categoryPerformance.forEach(category => {
+      csvData.push([
+        category.category,
+        formatCurrency(category.revenue),
+        formatCurrency(category.profit),
+        category.transactions
+      ]);
+    });
+
+    // Convert to CSV string
+    const csvContent = csvData.map(row => 
+      row.map(cell => `"${cell}"`).join(',')
+    ).join('\n');
+
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `sales_report_${timeframe}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const formatCurrency = (amount: number) => `₱${amount.toFixed(2)}`;
   const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
 
@@ -344,13 +494,101 @@ export const SalesReports = () => {
           <p className="text-muted-foreground">Comprehensive business insights and performance metrics</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Filter className="w-4 h-4" />
-            Filter
-          </Button>
-          <Button variant="outline" className="gap-2">
+          <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Filter className="w-4 h-4" />
+                Filter
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Filter Sales Data</DialogTitle>
+                <DialogDescription>
+                  Filter transactions by date range, category, and amount
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="dateFrom">From Date</Label>
+                    <Input
+                      id="dateFrom"
+                      type="date"
+                      value={filters.dateFrom}
+                      onChange={(e) => setFilters({...filters, dateFrom: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dateTo">To Date</Label>
+                    <Input
+                      id="dateTo"
+                      type="date"
+                      value={filters.dateTo}
+                      onChange={(e) => setFilters({...filters, dateTo: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={filters.category} onValueChange={(value) => setFilters({...filters, category: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All categories</SelectItem>
+                      {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="minAmount">Min Amount (₱)</Label>
+                    <Input
+                      id="minAmount"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={filters.minAmount}
+                      onChange={(e) => setFilters({...filters, minAmount: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="maxAmount">Max Amount (₱)</Label>
+                    <Input
+                      id="maxAmount"
+                      type="number"
+                      step="0.01"
+                      placeholder="1000.00"
+                      value={filters.maxAmount}
+                      onChange={(e) => setFilters({...filters, maxAmount: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-4">
+                  <Button variant="outline" onClick={clearFilters}>
+                    <X className="w-4 h-4 mr-2" />
+                    Clear
+                  </Button>
+                  <Button onClick={applyFilters}>
+                    <Filter className="w-4 h-4 mr-2" />
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Button variant="outline" className="gap-2" onClick={exportToCSV}>
             <Download className="w-4 h-4" />
-            Export
+            Export CSV
           </Button>
         </div>
       </div>
