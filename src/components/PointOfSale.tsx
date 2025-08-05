@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ReceiptModal } from "./ReceiptModal";
+import { BarcodeScanner } from "./BarcodeScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -39,6 +40,7 @@ export const PointOfSale = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [amountReceived, setAmountReceived] = useState("");
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [lastTransaction, setLastTransaction] = useState<any>(null);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,6 +119,27 @@ export const PointOfSale = () => {
   const clearCart = () => {
     setCart([]);
     setAmountReceived("");
+  };
+
+  const handleBarcodeScanned = (barcode: string) => {
+    // Try to find product by barcode
+    const product = availableProducts.find(p => p.barcode === barcode);
+    
+    if (product) {
+      addToCart(product);
+      toast({
+        title: "Product Found!",
+        description: `${product.name} added to cart`,
+      });
+    } else {
+      // If no product found, search by barcode in search field
+      setSearchTerm(barcode);
+      toast({
+        title: "Barcode Scanned",
+        description: `Searching for: ${barcode}`,
+        variant: "default",
+      });
+    }
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -228,7 +251,11 @@ export const PointOfSale = () => {
                 className="pl-10 h-10 sm:h-12 rounded-xl sm:rounded-2xl"
               />
             </div>
-            <Button variant="outline" className="gap-2 h-10 sm:h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl">
+            <Button 
+              variant="outline" 
+              className="gap-2 h-10 sm:h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl"
+              onClick={() => setShowScanner(true)}
+            >
               <Scan className="w-4 h-4" />
               <span className="hidden sm:inline">Scan</span>
             </Button>
@@ -390,6 +417,13 @@ export const PointOfSale = () => {
         receipt={lastTransaction}
         isOpen={showReceipt}
         onClose={() => setShowReceipt(false)}
+      />
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleBarcodeScanned}
       />
     </div>
   );
