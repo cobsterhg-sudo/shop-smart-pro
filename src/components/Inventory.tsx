@@ -354,59 +354,59 @@ export const Inventory = () => {
               </div>
             ) : (
               filteredProducts.map((product) => (
-              <div key={product.id} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-medium transition-all duration-200">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                <div key={product.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg border bg-card hover:shadow-medium transition-all duration-200 gap-4">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
                       <Package className="w-6 h-6 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-foreground">{product.name}</h4>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>Barcode: {product.barcode}</span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-foreground truncate">{product.name}</h4>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <span className="truncate">Barcode: {product.barcode}</span>
                         {product.category && (
-                          <span className="px-2 py-1 bg-accent rounded text-xs">{product.category}</span>
+                          <span className="px-2 py-1 bg-accent rounded text-xs whitespace-nowrap">{product.category}</span>
                         )}
                       </div>
                     </div>
                   </div>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full sm:w-auto sm:min-w-0 sm:flex-1">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Capital</p>
+                      <p className="font-semibold text-foreground">₱{product.capital.toFixed(2)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Selling Price</p>
+                      <p className="font-semibold text-foreground">₱{product.selling.toFixed(2)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Stock</p>
+                      <p className="font-semibold text-foreground">{product.stock}</p>
+                    </div>
+                    <div className="text-center sm:text-left">
+                      {getStatusBadge(product.status, product.stock)}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditProduct(product)}
+                      className="hover-scale flex-1 sm:flex-none"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteProduct(product.id)}
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground hover-scale flex-1 sm:flex-none"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 gap-4 items-center text-center min-w-0 flex-1">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Capital</p>
-                    <p className="font-semibold text-foreground">₱{product.capital.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Selling Price</p>
-                    <p className="font-semibold text-foreground">₱{product.selling.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Stock</p>
-                    <p className="font-semibold text-foreground">{product.stock}</p>
-                  </div>
-                  <div>
-                    {getStatusBadge(product.status, product.stock)}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 ml-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditProduct(product)}
-                    className="hover-scale"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteProduct(product.id)}
-                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground hover-scale"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
               ))
             )}
           </div>
