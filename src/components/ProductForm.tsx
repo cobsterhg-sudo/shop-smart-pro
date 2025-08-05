@@ -238,7 +238,7 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
               <div className="flex justify-between text-sm">
                 <span>Profit margin:</span>
                 <span className="font-medium text-success">
-                  {((formData.selling - formData.capital) / formData.capital * 100).toFixed(1)}%
+                  {formData.capital > 0 ? ((formData.selling - formData.capital) / formData.capital * 100).toFixed(1) : '0.0'}%
                 </span>
               </div>
             </div>
