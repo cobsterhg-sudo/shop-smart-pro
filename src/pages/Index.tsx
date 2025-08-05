@@ -109,15 +109,15 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       {/* Mobile Layout */}
       <div className="flex flex-col lg:hidden">
-        <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 p-4">
-          <h1 className="text-lg font-bold text-foreground">BentaMate</h1>
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 px-4 py-3 sm:px-6 sm:py-4">
+          <h1 className="text-lg sm:text-xl font-bold text-foreground">BentaMate</h1>
         </div>
-        <main className="pt-16 pb-20 px-2 sm:px-4">
+        <main className="pt-16 sm:pt-20 pb-20 sm:pb-24 px-3 sm:px-4 md:px-6">
           <div className="max-w-full mx-auto overflow-x-hidden">
             {renderContent()}
           </div>
         </main>
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/50 h-20">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/50 h-20 sm:h-24">
           <Sidebar 
             activeTab={activeTab} 
             onTabChange={setActiveTab}
@@ -133,7 +133,7 @@ const Index = () => {
           onTabChange={setActiveTab}
           onLogout={handleLogout}
         />
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">
+        <main className="flex-1 p-6 lg:p-8 overflow-auto">
           <div className="max-w-7xl mx-auto overflow-x-hidden">
             {renderContent()}
           </div>

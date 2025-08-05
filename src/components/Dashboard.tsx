@@ -101,7 +101,7 @@ export const Dashboard = ({ onTabChange }: DashboardProps) => {
 
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in px-1 sm:px-0">
       {/* Header */}
       <div className="animate-slide-up px-1">
         <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">Dashboard</h1>

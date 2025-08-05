@@ -210,7 +210,7 @@ export const CostAnalysis = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
       {/* Header */}
       <div className="space-y-4">
         <div>

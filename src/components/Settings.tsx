@@ -85,7 +85,7 @@ export const Settings = ({ onLogout }: SettingsProps) => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-4xl animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 max-w-4xl animate-fade-in px-1 sm:px-0">
       {/* Header */}
       <div className="animate-slide-up">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground gradient-text">Settings</h1>

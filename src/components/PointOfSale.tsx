@@ -207,7 +207,7 @@ export const PointOfSale = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 h-full px-1 sm:px-0">
       {/* Products Section */}
       <div className="lg:col-span-2 space-y-4 sm:space-y-6">
         {/* Header */}

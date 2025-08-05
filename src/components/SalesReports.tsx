@@ -486,7 +486,7 @@ export const SalesReports = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in px-1 sm:px-0">
       {/* Header */}
       <div className="space-y-3 sm:space-y-4 animate-slide-up">
         <div>
