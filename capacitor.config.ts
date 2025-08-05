@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.8fd8ccd9aaff4cc190100e0c1316c7bb',
+  appId: 'com.lovable.shopsmartpro',
   appName: 'shop-smart-pro',
   webDir: 'dist',
   server: {
