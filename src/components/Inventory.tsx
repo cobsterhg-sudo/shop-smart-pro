@@ -88,6 +88,17 @@ export const Inventory = () => {
 
   const handleSaveProduct = async (productData: any) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to add products",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Determine status based on stock
       const status = productData.stock === 0 ? "out-of-stock" : 
                      productData.stock <= 10 ? "low-stock" : "in-stock";
@@ -95,6 +106,7 @@ export const Inventory = () => {
       const productWithStatus = { 
         ...productData, 
         status,
+        user_id: user.id,
         capital: Number(productData.capital),
         selling: Number(productData.selling),
         stock: Number(productData.stock)
