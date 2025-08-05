@@ -236,7 +236,7 @@ export const PointOfSale = () => {
         </Card>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
           {loading ? (
             <div className="col-span-full text-center py-8 text-muted-foreground">Loading products...</div>
           ) : filteredProducts.length === 0 ? (
@@ -247,20 +247,20 @@ export const PointOfSale = () => {
             filteredProducts.map((product) => (
             <Card 
               key={product.id} 
-              className="p-3 sm:p-4 shadow-soft hover:shadow-medium transition-all cursor-pointer rounded-2xl sm:rounded-3xl"
+              className="p-2 sm:p-4 shadow-soft hover:shadow-medium transition-all cursor-pointer rounded-lg sm:rounded-2xl"
               onClick={() => addToCart(product)}
             >
-              <div className="space-y-2 sm:space-y-3">
-                <div className="w-full h-16 sm:h-24 bg-gradient-primary rounded-lg flex items-center justify-center">
-                  <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              <div className="space-y-1 sm:space-y-3">
+                <div className="w-full h-12 sm:h-20 bg-gradient-primary rounded-md flex items-center justify-center">
+                  <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-medium text-foreground text-sm sm:text-base leading-tight">{product.name}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Stock: {product.stock}</p>
+                <div className="min-h-0">
+                  <h3 className="font-medium text-foreground text-xs sm:text-sm leading-tight line-clamp-2">{product.name}</h3>
+                  <p className="text-xs text-muted-foreground hidden sm:block">Stock: {product.stock}</p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-base sm:text-lg font-bold text-foreground">₱{product.selling.toFixed(2)}</span>
-                  <Badge variant="outline" className="text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <span className="text-sm sm:text-base font-bold text-foreground">₱{product.selling.toFixed(2)}</span>
+                  <Badge variant="outline" className="text-xs w-fit">
                     #{product.id.slice(-6)}
                   </Badge>
                 </div>

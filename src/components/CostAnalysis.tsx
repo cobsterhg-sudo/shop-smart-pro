@@ -212,25 +212,26 @@ export const CostAnalysis = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="space-y-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Cost Price Analysis</h1>
-          <p className="text-muted-foreground">Analyze margins, optimize pricing, and maximize profitability</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Cost Price Analysis</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Analyze margins, optimize pricing, and maximize profitability</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button 
-            className="bg-gradient-primary hover:opacity-90"
+            className="bg-gradient-primary hover:opacity-90 h-10 sm:h-11"
             onClick={() => setShowCalculator(true)}
           >
             <Calculator className="w-4 h-4 mr-2" />
-            Price Calculator
+            <span className="text-sm sm:text-base">Price Calculator</span>
           </Button>
           <Button 
             variant="outline"
             onClick={() => setShowRetailComparison(true)}
+            className="h-10 sm:h-11"
           >
             <BarChart3 className="w-4 h-4 mr-2" />
-            Retail Comparison
+            <span className="text-sm sm:text-base">Retail Comparison</span>
           </Button>
         </div>
       </div>
