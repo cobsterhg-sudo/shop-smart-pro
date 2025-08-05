@@ -144,7 +144,12 @@ export const Dashboard = ({ onTabChange }: DashboardProps) => {
         <Card className="p-8 shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-foreground">Recent Transactions</h3>
-            <span className="text-sm text-primary cursor-pointer hover:underline font-semibold ios-button px-3 py-1 rounded-full">View All</span>
+            <button 
+              onClick={() => onTabChange("reports")}
+              className="text-sm text-primary cursor-pointer hover:underline font-semibold ios-button px-3 py-1 rounded-full hover:bg-primary/10 transition-colors"
+            >
+              View All
+            </button>
           </div>
           <div className="space-y-4">
             {loading ? (
