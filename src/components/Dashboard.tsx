@@ -101,21 +101,21 @@ export const Dashboard = ({ onTabChange }: DashboardProps) => {
 
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="animate-slide-up">
-        <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard</h1>
-        <p className="text-muted-foreground text-lg">Overview of your business performance</p>
+      <div className="animate-slide-up px-1">
+        <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">Dashboard</h1>
+        <p className="text-muted-foreground text-base sm:text-lg">Overview of your business performance</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {displayStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card 
               key={index} 
-              className="p-4 sm:p-6 bg-gradient-card shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm"
+              className="p-4 sm:p-6 bg-gradient-card shadow-soft ios-card rounded-2xl sm:rounded-3xl border-0 backdrop-blur-sm"
               style={{
                 animationDelay: `${index * 150}ms`
               }}
@@ -141,12 +141,12 @@ export const Dashboard = ({ onTabChange }: DashboardProps) => {
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
         {/* Recent Transactions */}
-        <Card className="p-4 sm:p-8 shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-foreground">Recent Transactions</h3>
+        <Card className="p-4 sm:p-8 shadow-soft ios-card rounded-2xl sm:rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className="text-lg sm:text-xl font-bold text-foreground">Recent Transactions</h3>
             <button 
               onClick={() => onTabChange("reports")}
-              className="text-sm text-primary cursor-pointer hover:underline font-semibold ios-button px-3 py-1 rounded-full hover:bg-primary/10 transition-colors"
+              className="text-xs sm:text-sm text-primary cursor-pointer hover:underline font-semibold ios-button px-2 sm:px-3 py-1 rounded-full hover:bg-primary/10 transition-colors"
             >
               View All
             </button>
@@ -179,36 +179,36 @@ export const Dashboard = ({ onTabChange }: DashboardProps) => {
         </Card>
 
         {/* Quick Actions */}
-        <Card className="p-4 sm:p-8 shadow-soft ios-card rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
-          <h3 className="text-xl font-bold text-foreground mb-6">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-4">
+        <Card className="p-4 sm:p-8 shadow-soft ios-card rounded-2xl sm:rounded-3xl border-0 backdrop-blur-sm bg-gradient-card">
+          <h3 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6">Quick Actions</h3>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <button 
               onClick={() => onTabChange("inventory")}
-              className="p-6 rounded-2xl bg-primary text-primary-foreground shadow-glow ios-button flex flex-col items-center space-y-3 group"
+              className="p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-primary text-primary-foreground shadow-glow ios-button flex flex-col items-center space-y-2 sm:space-y-3 group min-h-[80px] sm:min-h-[120px]"
             >
-              <Package className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
-              <span className="text-sm font-semibold">Add Product</span>
+              <Package className="w-6 h-6 sm:w-8 sm:h-8 group-hover:scale-110 transition-transform duration-300" />
+              <span className="text-xs sm:text-sm font-semibold text-center leading-tight">Add Product</span>
             </button>
             <button 
               onClick={() => onTabChange("pos")}
-              className="p-6 rounded-2xl bg-success text-success-foreground shadow-glow ios-button flex flex-col items-center space-y-3 group"
+              className="p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-success text-success-foreground shadow-glow ios-button flex flex-col items-center space-y-2 sm:space-y-3 group min-h-[80px] sm:min-h-[120px]"
             >
-              <DollarSign className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
-              <span className="text-sm font-semibold">New Sale</span>
+              <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 group-hover:scale-110 transition-transform duration-300" />
+              <span className="text-xs sm:text-sm font-semibold text-center leading-tight">New Sale</span>
             </button>
             <button 
               onClick={() => onTabChange("reports")}
-              className="p-6 rounded-2xl bg-warning text-warning-foreground shadow-glow ios-button flex flex-col items-center space-y-3 group"
+              className="p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-warning text-warning-foreground shadow-glow ios-button flex flex-col items-center space-y-2 sm:space-y-3 group min-h-[80px] sm:min-h-[120px]"
             >
-              <TrendingUp className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
-              <span className="text-sm font-semibold">View Reports</span>
+              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 group-hover:scale-110 transition-transform duration-300" />
+              <span className="text-xs sm:text-sm font-semibold text-center leading-tight">View Reports</span>
             </button>
             <button 
               onClick={() => onTabChange("settings")}
-              className="p-6 rounded-2xl bg-accent text-accent-foreground shadow-glow ios-button flex flex-col items-center space-y-3 group"
+              className="p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-accent text-accent-foreground shadow-glow ios-button flex flex-col items-center space-y-2 sm:space-y-3 group min-h-[80px] sm:min-h-[120px]"
             >
-              <Users className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
-              <span className="text-sm font-semibold">Manage Users</span>
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 group-hover:scale-110 transition-transform duration-300" />
+              <span className="text-xs sm:text-sm font-semibold text-center leading-tight">Manage Users</span>
             </button>
           </div>
         </Card>

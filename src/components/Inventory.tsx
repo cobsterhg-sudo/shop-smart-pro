@@ -228,16 +228,16 @@ export const Inventory = () => {
   const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Inventory Management</h1>
-          <p className="text-muted-foreground">Manage your product catalog and stock levels</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Inventory Management</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Manage your product catalog and stock levels</p>
         </div>
         <Button 
           onClick={handleAddProduct}
-          className="bg-gradient-primary hover:opacity-90"
+          className="bg-gradient-primary hover:opacity-90 h-10 sm:h-12 px-4 sm:px-6 rounded-xl sm:rounded-2xl w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Product
@@ -245,38 +245,40 @@ export const Inventory = () => {
       </div>
 
       {/* Search and Filters */}
-      <Card className="p-4 shadow-soft">
-        <div className="flex items-center gap-4">
+      <Card className="p-3 sm:p-4 shadow-soft rounded-2xl sm:rounded-3xl">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search products by name or barcode..."
+              placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-10 sm:h-12 rounded-xl sm:rounded-2xl"
             />
           </div>
-          <Button variant="outline">
-            <select 
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="bg-transparent border-none outline-none"
-            >
-              <option value="all">All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-          </Button>
-          {activeFilter !== "all" && (
-            <Button 
-              variant="outline" 
-              onClick={() => setActiveFilter("all")}
-              className="text-muted-foreground"
-            >
-              Clear Filter
+          <div className="flex gap-2 sm:gap-3">
+            <Button variant="outline" className="h-10 sm:h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl">
+              <select 
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm"
+              >
+                <option value="all">All Categories</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
             </Button>
-          )}
+            {activeFilter !== "all" && (
+              <Button 
+                variant="outline" 
+                onClick={() => setActiveFilter("all")}
+                className="text-muted-foreground h-10 sm:h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl text-sm"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
 
