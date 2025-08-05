@@ -95,7 +95,8 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
 
     const productToSave = {
       ...formData,
-      id: product?.id || Date.now().toString(),
+      // Don't include ID for new products - let the database generate it
+      ...(product?.id && { id: product.id }),
     };
 
     onSave(productToSave);
