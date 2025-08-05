@@ -278,21 +278,20 @@ export const ProductForm = ({ product, isOpen, onClose, onSave }: ProductFormPro
               </Button>
             </div>
           </div>
-        </form>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className="bg-gradient-primary hover:opacity-90"
-          >
-            {isLoading ? 'Saving...' : (product ? 'Update Product' : 'Add Product')}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="bg-gradient-primary hover:opacity-90"
+            >
+              {isLoading ? 'Saving...' : (product ? 'Update Product' : 'Add Product')}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
