@@ -10,6 +10,7 @@ import { CostAnalysis } from "@/components/CostAnalysis";
 import { SalesReports } from "@/components/SalesReports";
 import { Settings } from "@/components/Settings";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart } from "lucide-react";
@@ -47,21 +48,58 @@ const Index = () => {
   };
 
   const renderContent = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return <Dashboard onTabChange={setActiveTab} />;
-      case "inventory":
-        return <Inventory />;
-      case "pos":
-        return <PointOfSale />;
-      case "cost-analysis":
-        return <CostAnalysis />;
-      case "reports":
-        return <SalesReports />;
-      case "settings":
-        return <Settings onLogout={handleLogout} />;
-      default:
-        return <Dashboard onTabChange={setActiveTab} />;
+    try {
+      switch (activeTab) {
+        case "dashboard":
+          return (
+            <ErrorBoundary>
+              <Dashboard onTabChange={setActiveTab} />
+            </ErrorBoundary>
+          );
+        case "inventory":
+          return (
+            <ErrorBoundary>
+              <Inventory />
+            </ErrorBoundary>
+          );
+        case "pos":
+          return (
+            <ErrorBoundary>
+              <PointOfSale />
+            </ErrorBoundary>
+          );
+        case "cost-analysis":
+          return (
+            <ErrorBoundary>
+              <CostAnalysis />
+            </ErrorBoundary>
+          );
+        case "reports":
+          return (
+            <ErrorBoundary>
+              <SalesReports />
+            </ErrorBoundary>
+          );
+        case "settings":
+          return (
+            <ErrorBoundary>
+              <Settings onLogout={handleLogout} />
+            </ErrorBoundary>
+          );
+        default:
+          return (
+            <ErrorBoundary>
+              <Dashboard onTabChange={setActiveTab} />
+            </ErrorBoundary>
+          );
+      }
+    } catch (error) {
+      console.error('Error rendering content:', error);
+      return (
+        <div className="text-center py-8">
+          <p className="text-destructive">Failed to load content. Please try again.</p>
+        </div>
+      );
     }
   };
 

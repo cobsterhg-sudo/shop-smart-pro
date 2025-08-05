@@ -29,45 +29,73 @@ class OfflineStorageManager {
   private dbName = 'BentaMateOffline';
   private version = 1;
   private db: IDBDatabase | null = null;
+  private initPromise: Promise<void> | null = null;
 
   async init(): Promise<void> {
+    // Return existing promise if already initializing
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    // Return immediately if already initialized
+    if (this.db) {
+      return Promise.resolve();
+    }
+
+    this.initPromise = this.initializeDB();
+    return this.initPromise;
+  }
+
+  private async initializeDB(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
 
-      request.onerror = () => reject(request.error);
+      request.onerror = () => {
+        console.error('Failed to open IndexedDB:', request.error);
+        this.initPromise = null; // Reset so we can try again
+        reject(request.error);
+      };
+      
       request.onsuccess = () => {
         this.db = request.result;
+        console.log('IndexedDB initialized successfully');
         resolve();
       };
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
 
-        // Create offline transactions store
-        if (!db.objectStoreNames.contains('transactions')) {
-          const transactionStore = db.createObjectStore('transactions', { keyPath: 'id' });
-          transactionStore.createIndex('timestamp', 'timestamp');
-          transactionStore.createIndex('synced', 'synced');
-        }
+        try {
+          // Create offline transactions store
+          if (!db.objectStoreNames.contains('transactions')) {
+            const transactionStore = db.createObjectStore('transactions', { keyPath: 'id' });
+            transactionStore.createIndex('timestamp', 'timestamp');
+            transactionStore.createIndex('synced', 'synced');
+          }
 
-        // Create offline products store
-        if (!db.objectStoreNames.contains('products')) {
-          const productStore = db.createObjectStore('products', { keyPath: 'id' });
-          productStore.createIndex('timestamp', 'timestamp');
-          productStore.createIndex('synced', 'synced');
-        }
+          // Create offline products store
+          if (!db.objectStoreNames.contains('products')) {
+            const productStore = db.createObjectStore('products', { keyPath: 'id' });
+            productStore.createIndex('timestamp', 'timestamp');
+            productStore.createIndex('synced', 'synced');
+          }
 
-        // Create cached data store
-        if (!db.objectStoreNames.contains('cache')) {
-          db.createObjectStore('cache', { keyPath: 'key' });
+          // Create cached data store
+          if (!db.objectStoreNames.contains('cache')) {
+            db.createObjectStore('cache', { keyPath: 'key' });
+          }
+        } catch (error) {
+          console.error('Error creating object stores:', error);
+          reject(error);
         }
       };
     });
   }
 
-  // Store offline transaction
+  // Store offline transaction (non-blocking)
   async storeOfflineTransaction(transaction: Omit<OfflineTransaction, 'id' | 'timestamp' | 'synced'>): Promise<string> {
-    if (!this.db) await this.init();
+    try {
+      if (!this.db) await this.init();
 
     const offlineTransaction: OfflineTransaction = {
       ...transaction,
@@ -76,14 +104,19 @@ class OfflineStorageManager {
       synced: false
     };
 
-    return new Promise((resolve, reject) => {
-      const transaction_db = this.db!.transaction(['transactions'], 'readwrite');
-      const store = transaction_db.objectStore('transactions');
-      const request = store.add(offlineTransaction);
+      return new Promise((resolve, reject) => {
+        const transaction_db = this.db!.transaction(['transactions'], 'readwrite');
+        const store = transaction_db.objectStore('transactions');
+        const request = store.add(offlineTransaction);
 
-      request.onsuccess = () => resolve(offlineTransaction.id);
-      request.onerror = () => reject(request.error);
-    });
+        request.onsuccess = () => resolve(offlineTransaction.id);
+        request.onerror = () => reject(request.error);
+      });
+    } catch (error) {
+      console.error('Failed to store offline transaction:', error);
+      // Return a local ID even if storage fails
+      return `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
   }
 
   // Store offline product action

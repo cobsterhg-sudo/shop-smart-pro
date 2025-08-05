@@ -1,27 +1,43 @@
-const CACHE_NAME = 'bentamate-v2';
-const API_CACHE = 'bentamate-api-v1';
+const CACHE_NAME = 'bentamate-v3';
+const API_CACHE = 'bentamate-api-v2';
 const OFFLINE_URL = '/';
 
-// Assets to cache for offline use
-const urlsToCache = [
+// Critical assets to cache immediately (minimal for fast startup)
+const criticalAssets = [
   '/',
-  '/auth',
-  '/manifest.json',
-  // Add common routes
-  '/static/css/main.css',
-  '/static/js/bundle.js',
+  '/manifest.json'
 ];
 
-// Install event - cache essential resources
+// Assets to cache in background after startup
+const backgroundAssets = [
+  '/auth'
+];
+
+// Install event - cache only critical resources for fast startup
 self.addEventListener('install', (event) => {
   console.log('[ServiceWorker] Install');
   event.waitUntil(
     (async () => {
-      const cache = await caches.open(CACHE_NAME);
-      console.log('[ServiceWorker] Caching app shell');
-      await cache.addAll(urlsToCache);
-      // Skip waiting to activate immediately
-      self.skipWaiting();
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        console.log('[ServiceWorker] Caching critical assets');
+        await cache.addAll(criticalAssets);
+        
+        // Cache background assets without blocking
+        setTimeout(async () => {
+          try {
+            await cache.addAll(backgroundAssets);
+            console.log('[ServiceWorker] Background assets cached');
+          } catch (error) {
+            console.warn('[ServiceWorker] Background caching failed:', error);
+          }
+        }, 1000);
+        
+        // Skip waiting to activate immediately
+        self.skipWaiting();
+      } catch (error) {
+        console.error('[ServiceWorker] Critical caching failed:', error);
+      }
     })()
   );
 });
@@ -68,24 +84,31 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(handleResourceRequest(request));
 });
 
-// Strategy for API requests - Network First with Cache Fallback
+// Strategy for API requests - Network First with immediate Cache Fallback
 async function handleApiRequest(request) {
   const cache = await caches.open(API_CACHE);
   
+  // Set a short timeout for network requests
+  const networkPromise = Promise.race([
+    fetch(request),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Network timeout')), 3000)
+    )
+  ]);
+  
   try {
-    // Try network first
-    const response = await fetch(request);
+    const response = await networkPromise;
     
     // Cache successful GET requests
     if (request.method === 'GET' && response.ok) {
-      cache.put(request, response.clone());
+      cache.put(request, response.clone()).catch(console.warn);
     }
     
     return response;
   } catch (error) {
     console.log('[ServiceWorker] Network failed, trying cache:', request.url);
     
-    // Fall back to cache
+    // Immediately fall back to cache
     const cachedResponse = await cache.match(request);
     if (cachedResponse) {
       return cachedResponse;
