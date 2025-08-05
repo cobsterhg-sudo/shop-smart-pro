@@ -43,7 +43,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLogout }: SidebarProps) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 lg:p-6 p-2 lg:space-y-3 flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 lg:gap-0">
+      <nav className="flex-1 lg:p-6 p-2 lg:space-y-3 flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-1 lg:gap-0 scrollbar-hide">
         {navigation.map((item, index) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -54,7 +54,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLogout }: SidebarProps) => {
               variant="ghost"
               onClick={() => onTabChange(item.id)}
               className={cn(
-                "w-full lg:w-full min-w-[80px] lg:justify-start justify-center gap-2 lg:gap-4 h-12 lg:h-14 rounded-xl lg:rounded-2xl text-[hsl(var(--sidebar-text))] ios-nav-item transition-all duration-300 flex-col lg:flex-row",
+                "lg:w-full min-w-[70px] lg:min-w-0 flex-shrink-0 lg:justify-start justify-center gap-1 lg:gap-4 h-12 lg:h-14 rounded-xl lg:rounded-2xl text-[hsl(var(--sidebar-text))] ios-nav-item transition-all duration-300 flex-col lg:flex-row",
                 "hover:bg-[hsl(var(--sidebar-active))]/10 hover:text-[hsl(var(--sidebar-active))] hover:shadow-soft",
                 isActive && "bg-[hsl(var(--sidebar-active))] hover:bg-[hsl(var(--sidebar-active))]/90 text-white shadow-glow scale-[1.02]"
               )}
@@ -62,22 +62,22 @@ export const Sidebar = ({ activeTab, onTabChange, onLogout }: SidebarProps) => {
                 animationDelay: `${index * 100}ms`
               }}
             >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium text-xs lg:text-base">{item.name}</span>
+              <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="font-medium text-[10px] lg:text-base leading-tight">{item.name}</span>
             </Button>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="lg:p-6 p-2 lg:border-t border-border/20">
+      {/* Logout - Separate on mobile */}
+      <div className="lg:p-6 p-2 lg:border-t border-border/20 flex-shrink-0">
         <Button
           variant="ghost"
           onClick={onLogout}
-          className="w-full lg:w-full min-w-[80px] lg:justify-start justify-center gap-2 lg:gap-4 h-12 lg:h-14 rounded-xl lg:rounded-2xl text-[hsl(var(--sidebar-text))] ios-nav-item transition-all duration-300 hover:bg-destructive/10 hover:text-destructive hover:shadow-soft flex-col lg:flex-row"
+          className="lg:w-full min-w-[60px] flex-shrink-0 lg:justify-start justify-center gap-1 lg:gap-4 h-12 lg:h-14 rounded-xl lg:rounded-2xl text-[hsl(var(--sidebar-text))] ios-nav-item transition-all duration-300 hover:bg-destructive/10 hover:text-destructive hover:shadow-soft flex-col lg:flex-row"
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium text-xs lg:text-base">Logout</span>
+          <LogOut className="w-4 h-4 lg:w-5 lg:h-5" />
+          <span className="font-medium text-[10px] lg:text-base leading-tight">Logout</span>
         </Button>
       </div>
     </div>
