@@ -80,6 +80,8 @@ const retailMultipliers = {
 };
 
 export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceComparisonModalProps) => {
+  const [productName, setProductName] = useState("");
+  const [productType, setProductType] = useState("");
   const [costPrice, setCostPrice] = useState("");
   const [myPrice, setMyPrice] = useState("");
   const [category, setCategory] = useState("general");
@@ -169,6 +171,8 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
   }, [costPrice, myPrice, category]);
 
   const reset = () => {
+    setProductName("");
+    setProductType("");
     setCostPrice("");
     setMyPrice("");
     setCategory("general");
@@ -189,7 +193,32 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Input Fields */}
+          {/* Product Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="product-name">Product Name</Label>
+              <Input
+                id="product-name"
+                type="text"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                placeholder="e.g., Coca Cola 1.5L"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="product-type">Product Type/Brand</Label>
+              <Input
+                id="product-type"
+                type="text"
+                value={productType}
+                onChange={(e) => setProductType(e.target.value)}
+                placeholder="e.g., Soft Drink, Shampoo, etc."
+              />
+            </div>
+          </div>
+
+          {/* Pricing Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="cost">Cost Price *</Label>
@@ -237,6 +266,27 @@ export const RetailPriceComparisonModal = ({ isOpen, onClose }: RetailPriceCompa
           {/* Comparison Results */}
           {comparisons && (
             <>
+              {/* Product Information Display */}
+              {(productName || productType) && (
+                <Card className="p-4 bg-muted/30">
+                  <h3 className="font-semibold mb-2 text-foreground">Product Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {productName && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Product Name</p>
+                        <p className="font-medium text-foreground">{productName}</p>
+                      </div>
+                    )}
+                    {productType && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Product Type</p>
+                        <p className="font-medium text-foreground">{productType}</p>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
+
               {/* My Current Pricing */}
               <Card className="p-4 bg-primary/5 border-primary/20">
                 <h3 className="font-semibold mb-3 text-foreground flex items-center gap-2">
