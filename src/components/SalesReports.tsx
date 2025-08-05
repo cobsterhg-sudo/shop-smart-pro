@@ -142,10 +142,24 @@ export const SalesReports = () => {
   }, []);
 
   useEffect(() => {
-    if (transactions.length > 0 && products.length > 0) {
+    if (transactions.length > 0) {
       calculateAnalytics();
+    } else if (!loading) {
+      // Set empty analytics when no transactions
+      setAnalytics({
+        totalRevenue: 0,
+        totalProfit: 0,
+        totalCost: 0,
+        totalTransactions: 0,
+        averageTransactionValue: 0,
+        profitMargin: 0,
+        topSellingProducts: [],
+        categoryPerformance: [],
+        hourlyPerformance: [],
+        dailyTrends: []
+      });
     }
-  }, [transactions, products, timeframe]);
+  }, [transactions, products, timeframe, loading]);
 
   const fetchData = async () => {
     try {
@@ -242,21 +256,23 @@ export const SalesReports = () => {
     filteredTransactions.forEach(transaction => {
       transaction.items.forEach(item => {
         const product = products.find(p => p.id === item.id);
-        if (product) {
-          const existing = productSales.get(item.id) || {
-            name: product.name,
-            quantity: 0,
-            revenue: 0,
-            profit: 0
-          };
-          const itemProfit = (product.selling - product.capital) * item.quantity;
-          productSales.set(item.id, {
-            ...existing,
-            quantity: existing.quantity + item.quantity,
-            revenue: existing.revenue + (item.price * item.quantity),
-            profit: existing.profit + itemProfit
-          });
-        }
+        const existing = productSales.get(item.id) || {
+          name: product?.name || item.name || 'Unknown Product',
+          quantity: 0,
+          revenue: 0,
+          profit: 0
+        };
+        // Use product data if available, otherwise estimate from transaction
+        const itemProfit = product ? 
+          (product.selling - product.capital) * item.quantity :
+          item.price * item.quantity * 0.2; // Assume 20% margin if no product data
+        
+        productSales.set(item.id, {
+          ...existing,
+          quantity: existing.quantity + item.quantity,
+          revenue: existing.revenue + (item.price * item.quantity),
+          profit: existing.profit + itemProfit
+        });
       });
     });
 
@@ -269,22 +285,24 @@ export const SalesReports = () => {
     filteredTransactions.forEach(transaction => {
       transaction.items.forEach(item => {
         const product = products.find(p => p.id === item.id);
-        if (product) {
-          const category = product.category || 'Uncategorized';
-          const existing = categoryMap.get(category) || {
-            category,
-            revenue: 0,
-            profit: 0,
-            transactions: 0
-          };
-          const itemProfit = (product.selling - product.capital) * item.quantity;
-          categoryMap.set(category, {
-            ...existing,
-            revenue: existing.revenue + (item.price * item.quantity),
-            profit: existing.profit + itemProfit,
-            transactions: existing.transactions + 1
-          });
-        }
+        const category = product?.category || 'Uncategorized';
+        const existing = categoryMap.get(category) || {
+          category,
+          revenue: 0,
+          profit: 0,
+          transactions: 0
+        };
+        // Use product data if available, otherwise estimate
+        const itemProfit = product ? 
+          (product.selling - product.capital) * item.quantity :
+          item.price * item.quantity * 0.2; // Assume 20% margin if no product data
+        
+        categoryMap.set(category, {
+          ...existing,
+          revenue: existing.revenue + (item.price * item.quantity),
+          profit: existing.profit + itemProfit,
+          transactions: existing.transactions + 1
+        });
       });
     });
 
@@ -483,6 +501,24 @@ export const SalesReports = () => {
 
   if (!analytics) {
     return <div className="text-center py-8 text-muted-foreground">Calculating analytics...</div>;
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <div className="space-y-4 sm:space-y-6 animate-fade-in px-1 sm:px-0">
+        <div className="space-y-3 sm:space-y-4 animate-slide-up">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground gradient-text">Sales Analytics</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Comprehensive business insights and performance metrics</p>
+          </div>
+        </div>
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📊</div>
+          <h3 className="text-xl font-semibold text-foreground mb-2">No Transactions Yet</h3>
+          <p className="text-muted-foreground">Start making sales to see your analytics here!</p>
+        </div>
+      </div>
+    );
   }
 
   return (
