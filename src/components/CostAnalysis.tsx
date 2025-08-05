@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useOfflineCapableOperations } from '@/hooks/use-offline';
+import { offlineStorage } from '@/lib/offline-storage';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,6 +58,7 @@ interface MarginAnalysis {
 }
 
 export const CostAnalysis = () => {
+  const { isOnline } = useOfflineCapableOperations();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCalculator, setShowCalculator] = useState(false);
@@ -67,13 +70,47 @@ export const CostAnalysis = () => {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let productsData = [];
 
-      if (error) throw error;
-      setProducts(data || []);
+      if (isOnline) {
+        // Fetch from Supabase when online
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        productsData = data || [];
+
+        // Cache for offline use
+        await offlineStorage.cacheData('products', productsData);
+      } else {
+        // Load from offline cache
+        const cachedProducts = await offlineStorage.getCachedData('products');
+        productsData = cachedProducts || [];
+
+        // Get offline product changes and apply them
+        const offlineProducts = await offlineStorage.getUnsyncedProducts();
+        offlineProducts.forEach(offlineProduct => {
+          const existingIndex = productsData.findIndex(p => p.id === offlineProduct.id);
+          
+          if (offlineProduct.action === 'create') {
+            if (existingIndex === -1) {
+              productsData.unshift(offlineProduct);
+            }
+          } else if (offlineProduct.action === 'update') {
+            if (existingIndex !== -1) {
+              productsData[existingIndex] = { ...productsData[existingIndex], ...offlineProduct };
+            }
+          } else if (offlineProduct.action === 'delete') {
+            if (existingIndex !== -1) {
+              productsData.splice(existingIndex, 1);
+            }
+          }
+        });
+      }
+
+      setProducts(productsData);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useOfflineCapableOperations } from '@/hooks/use-offline';
+import { offlineStorage } from '@/lib/offline-storage';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -123,6 +125,7 @@ interface Filters {
 }
 
 export const SalesReports = () => {
+  const { isOnline } = useOfflineCapableOperations();
   const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('daily');
@@ -163,31 +166,66 @@ export const SalesReports = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch transactions and products in parallel
-      const [transactionsResult, productsResult] = await Promise.all([
-        supabase
-          .from('transactions')
-          .select('*')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('products')
-          .select('*')
-      ]);
+      let transactionsData = [];
+      let productsData = [];
 
-      if (transactionsResult.error) throw transactionsResult.error;
-      if (productsResult.error) throw productsResult.error;
+      if (isOnline) {
+        // Fetch from Supabase when online
+        const [transactionsResult, productsResult] = await Promise.all([
+          supabase
+            .from('transactions')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('products')
+            .select('*')
+        ]);
 
-      setProducts(productsResult.data || []);
+        if (transactionsResult.error) throw transactionsResult.error;
+        if (productsResult.error) throw productsResult.error;
+
+        transactionsData = transactionsResult.data || [];
+        productsData = productsResult.data || [];
+
+        // Cache data for offline use
+        await offlineStorage.cacheData('transactions', transactionsData);
+        await offlineStorage.cacheData('products', productsData);
+      } else {
+        // Load from offline cache
+        const [cachedTransactions, cachedProducts, offlineTransactions] = await Promise.all([
+          offlineStorage.getCachedData('transactions'),
+          offlineStorage.getCachedData('products'),
+          offlineStorage.getUnsyncedTransactions()
+        ]);
+
+        transactionsData = cachedTransactions || [];
+        productsData = cachedProducts || [];
+
+        // Include offline transactions
+        const offlineTransactionData = offlineTransactions.map(tx => ({
+          id: tx.id,
+          total: tx.total,
+          amount_received: tx.amount_received,
+          change_amount: tx.change_amount,
+          items: tx.items,
+          created_at: tx.timestamp,
+          user_id: tx.user_id
+        }));
+
+        transactionsData = [...transactionsData, ...offlineTransactionData];
+      }
+
+      setProducts(productsData);
       
       // Process transactions with profit calculations
-      const processedTransactions = (transactionsResult.data || []).map((transaction: RawTransaction) => {
+      const processedTransactions = transactionsData.map((transaction: RawTransaction) => {
         const transactionDate = new Date(transaction.created_at);
         
         // Calculate actual profit for this transaction
         let transactionProfit = 0;
         if (transaction.items && Array.isArray(transaction.items)) {
           transactionProfit = transaction.items.reduce((profit, item) => {
-            const product = productsResult.data?.find(p => p.id === item.id);
+            const product = productsData?.find(p => p.id === item.id);
             if (product) {
               const itemProfit = (product.selling - product.capital) * item.quantity;
               return profit + itemProfit;
